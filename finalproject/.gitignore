@@ -1,0 +1,9 @@
+data
+data/
+__pycache__/
+*.pyc
+*.pt
+*.pth
+training.csv
+*_results.json
+.env
