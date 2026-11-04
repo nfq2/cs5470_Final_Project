@@ -7,6 +7,18 @@ from model import WireModel
 
 
 class ModelTests(unittest.TestCase):
+    def test_configurable_dropout_and_old_weights(self):
+        model = WireModel(pretrained=False, dropout=0)
+        self.assertEqual(model.classifier[2].p, 0)
+        model.classifier.train()
+        inputs = torch.randn(4, model.classifier[0].in_features)
+        torch.testing.assert_close(model.classifier(inputs), model.classifier(inputs))
+        default = WireModel(pretrained=False)
+        self.assertEqual(default.classifier[2].p, .3)
+        default.load_state_dict(model.state_dict())
+        with self.assertRaises(ValueError):
+            WireModel(pretrained=False, dropout=float('nan'))
+
     def test_retract_weight_scales_only_retract_gradient(self):
         class LogitsModel(torch.nn.Module):
             def __init__(self):

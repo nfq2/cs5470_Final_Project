@@ -9,8 +9,10 @@ MODEL_NAME = "repvit_m0_9.dist_450e_in1k"
 
 
 class WireModel(nn.Module):
-    def __init__(self, pretrained=True, freeze_backbone=True, hidden_dim=128):
+    def __init__(self, pretrained=True, freeze_backbone=True, hidden_dim=128, dropout=0.3):
         super().__init__()
+        if not 0 <= dropout < 1:
+            raise ValueError("dropout must be between 0 (inclusive) and 1 (exclusive)")
         self.encoder = timm.create_model(MODEL_NAME, pretrained=pretrained, num_classes=0)
         self.freeze_backbone = freeze_backbone
         self.encoder.requires_grad_(not freeze_backbone)
@@ -18,7 +20,7 @@ class WireModel(nn.Module):
         self.register_buffer("history_std", torch.ones(12))
         self.classifier = nn.Sequential(
             nn.Linear(7 * self.encoder.num_features + 12, hidden_dim),
-            nn.ReLU(), nn.Dropout(0.3), nn.Linear(hidden_dim, 2),
+            nn.ReLU(), nn.Dropout(dropout), nn.Linear(hidden_dim, 2),
         )
         self.train()
 

@@ -256,3 +256,32 @@ Near-perfect tiny-set accuracy and low loss show the pipeline can fit a small
 set, not that it generalizes. A gap between the two modes suggests BatchNorm
 sensitivity in this deliberately tiny experiment. Failure to fit after 200 steps
 calls for further diagnosis, not a definitive conclusion about the model.
+
+## Controlled dropout comparison
+
+`train.py --dropout 0` disables classifier dropout. The default remains 0.3;
+this setting is saved in config/checkpoints and printed at startup. Evaluation
+always disables dropout, and older checkpoints remain loadable.
+
+Every epoch now includes `train_eval`: the entire training set scored after the
+updates, with dropout disabled and BatchNorm using running statistics, exactly
+like validation. This extra pass performs no updates and uses a separate loader
+RNG so training order and dropout randomness are not affected. `train` still
+reports metrics collected during updates. Compare `train_eval` with `validation`
+to distinguish poor training-set fitting from poor generalization. The extra pass
+adds time; checkpoint selection remains unweighted validation loss.
+
+For the comparison with the previous unweighted fine-tuning run, keep weight
+decay (1e-4), seed, fold, learning rates, batch size, and resolution unchanged:
+
+```bash
+srun --ntasks=1 --gpus=1 python train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_finetune_no_dropout_$(date +%Y%m%d_%H%M%S)" \
+  --fold 0 --epochs 20 --batch-size 8 --num-workers 2 \
+  --lr 1e-4 --retract-weight 1.0 --finetune --backbone-lr 1e-5 --dropout 0
+```
+
+This is full-data training, not the eight-case diagnostic. It starts from fresh
+pretrained weights and a fresh classifier. Improved tiny-case fitting does not
+guarantee improvement on validation; assess the recorded curves before testing.

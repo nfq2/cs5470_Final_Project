@@ -7,6 +7,7 @@ from pathlib import Path
 
 import timm
 import torch
+from torch.utils.data import DataLoader
 
 from data_loader import ImagePreprocess, make_dataloader
 from engine import run_epoch
@@ -24,6 +25,8 @@ def main():
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--backbone-lr", type=float, default=1e-5)
+    p.add_argument("--dropout", type=float, default=0.3,
+                   help="Classifier dropout probability; use 0 to disable")
     p.add_argument("--retract-weight", type=float, default=1.0,
                    help="Training loss multiplier for true retract cases; advance stays 1.0")
     p.add_argument("--seed", type=int, default=42)
@@ -34,6 +37,8 @@ def main():
     args = p.parse_args()
     if args.epochs < 1:
         p.error("epochs must be positive")
+    if not 0 <= args.dropout < 1:
+        p.error("dropout must be between 0 (inclusive) and 1 (exclusive)")
     if not math.isfinite(args.retract_weight) or args.retract_weight <= 0:
         p.error("retract-weight must be positive and finite")
     if args.init_checkpoint and args.random_init:
@@ -46,7 +51,7 @@ def main():
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=False)
     model = WireModel(pretrained=not (args.random_init or args.init_checkpoint),
-                      freeze_backbone=not args.finetune)
+                      freeze_backbone=not args.finetune, dropout=args.dropout)
     cfg = model.encoder.pretrained_cfg
     preprocessing = {"size": [args.image_size, args.image_size],
                      "mean": list(cfg["mean"]), "std": list(cfg["std"])}
@@ -63,6 +68,11 @@ def main():
                   pin_memory=device.type == "cuda")
     train = make_dataloader(split="train", **common)
     validation = make_dataloader(split="validation", **common)
+    # Separate generator: this diagnostic pass must not change training shuffle
+    # order or consume the global RNG used by dropout.
+    train_eval = DataLoader(train.dataset, batch_size=args.batch_size, shuffle=False,
+                            num_workers=args.num_workers, pin_memory=device.type == "cuda",
+                            generator=torch.Generator().manual_seed(args.seed))
     model.fit_history_normalization(train.dataset.cases)
     model.to(device)
     groups = [{"params": model.classifier.parameters(), "lr": args.lr}]
@@ -74,13 +84,16 @@ def main():
     best_loss = float("inf")
     weights = [args.retract_weight, 1.0] if args.retract_weight != 1.0 else None
     print(json.dumps({"backbone_trainable": args.finetune,
+                      "dropout": args.dropout,
                       "classifier_lr": args.lr, "backbone_lr": args.backbone_lr if args.finetune else None,
                       "class_weights_retract_advance": [args.retract_weight, 1.0],
                       "checkpoint_selection": "unweighted validation loss"}), flush=True)
     for epoch in range(1, args.epochs + 1):
         training = run_epoch(model, train, device, optimizer, class_weights=weights)
         valid = run_epoch(model, validation, device)
-        record = {"epoch": epoch, "train": training, "validation": valid}
+        training_eval = run_epoch(model, train_eval, device)
+        record = {"epoch": epoch, "train": training, "train_eval": training_eval,
+                  "validation": valid}
         print(json.dumps(record), flush=True)
         with (output / "history.jsonl").open("a") as f:
             f.write(json.dumps(record) + "\n")
