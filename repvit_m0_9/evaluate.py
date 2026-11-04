@@ -9,6 +9,7 @@ import torch
 from data_loader import ImagePreprocess, make_dataloader
 from engine import move_batch, run_epoch
 from model import WireModel
+from history_baseline import HistoryModel, make_history_loader
 
 
 def main():
@@ -30,20 +31,25 @@ def main():
     if device.type == "cuda" and not torch.cuda.is_available():
         p.error("CUDA unavailable; run inside a GPU allocation")
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
-    model = WireModel(pretrained=False)
+    numerical_only = checkpoint.get('model_name') == 'history_mlp'
+    model = (HistoryModel(checkpoint['config']['hidden_dim'], checkpoint['config']['dropout'])
+             if numerical_only else WireModel(pretrained=False))
     model.load_state_dict(checkpoint["model"])
     model.to(device).eval()
     common = dict(root=args.data_root, fold=checkpoint["config"]["fold"], split=args.split,
-                  transform=ImagePreprocess(**checkpoint["preprocessing"]),
                   num_workers=args.num_workers)
-    loader = make_dataloader(batch_size=args.batch_size, **common)
+    loader_factory = make_history_loader if numerical_only else make_dataloader
+    if not numerical_only:
+        common['transform'] = ImagePreprocess(**checkpoint['preprocessing'])
+    loader = loader_factory(batch_size=args.batch_size, **common)
     result = {"split": args.split, "fold": checkpoint["config"]["fold"],
+              "model_name": checkpoint.get('model_name'),
               "checkpoint_selection": checkpoint.get("selection_criterion", "minimum unweighted validation loss (legacy)"),
               "checkpoint_epoch": checkpoint["epoch"], "pretrained": checkpoint["pretrained"],
               "metrics": run_epoch(model, loader, device),
               "confusion_matrix_order": "rows=true, columns=predicted; [retract, advance]"}
     if args.latency:
-        single = make_dataloader(batch_size=1, **common)
+        single = loader_factory(batch_size=1, **common)
         def synchronize():
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
@@ -63,7 +69,8 @@ def main():
                     samples.append((time.perf_counter() - start) * 1000)
         values = torch.tensor(samples)
         result["latency"] = {
-            "scope": "FP32 batch=1 full seven-image forward; excludes I/O, preprocessing and transfer",
+            "scope": ("FP32 batch=1 numerical-history forward; excludes I/O and transfer" if numerical_only
+                      else "FP32 batch=1 full seven-image forward; excludes I/O, preprocessing and transfer"),
             "device": torch.cuda.get_device_name(device) if device.type == "cuda" else str(device),
             "mean_ms": values.mean().item(), "median_ms": values.median().item(),
             "p95_ms": values.quantile(.95).item(), "measurements": len(samples),

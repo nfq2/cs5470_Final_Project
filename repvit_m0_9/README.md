@@ -357,3 +357,44 @@ Compare validation results under the same checkpoint criterion across folds. Thi
 is a cross-fold validation check, not test evaluation; no fold's test data is used
 by training. Supplied folds may overlap each other, so scores are not necessarily
 independent and pooled test use would need a declared evaluation protocol.
+
+## Numerical-history-only baseline
+
+`history_baseline.py` uses only six relative timestamps and six relative insertion
+depths. It reads the supplied manifest and fold indices, but never opens images or
+constructs RepViT. The model is 12 inputs → 32-unit ReLU → dropout → two logits
+(482 parameters). Standardization is fitted on training cases only and saved in
+model buffers. No identifiers, absolute timestamps, labels, or image-derived fields
+are included as inputs.
+
+Run the fixed comparison on fold 0 inside your existing allocation:
+
+```bash
+srun --ntasks=1 --gpus=1 python history_baseline.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_history_w12_d01_$(date +%Y%m%d_%H%M%S)" \
+  --fold 0 --epochs 20 --batch-size 8 --lr 1e-4 \
+  --retract-weight 1.2 --dropout 0.1
+```
+
+CPU is also supported with `--device cpu` on an appropriate allocated node. No
+pretrained download is needed. This keeps the latest visual run's fold, seed,
+batch size, learning rate, class weights, dropout, epochs and AdamW weight decay.
+The smaller classifier is a simple baseline, not an exact matched-capacity ablation.
+It reports train, train_eval, and validation, writes history/config, and uses the
+same three checkpoint names. For this comparison, use `best_balanced.pt` for BOTH
+methods; its selected epoch and validation metrics are printed at completion.
+Poor performance alone does not prove numerical inputs have no signal: this is one
+model and optimization budget, so also inspect its training-set fitting.
+
+`evaluate.py` detects numerical checkpoints and uses the image-free loader. To
+recheck validation (not test) with an exact run path:
+
+```bash
+python evaluate.py --data-root "$PSCRATCH/shorthorizon2" \
+  --checkpoint /path/to/run/best_balanced.pt \
+  --split validation --device cpu --output /path/to/run/validation_metrics.json
+```
+
+Do not evaluate test while selecting configurations. Any later latency comparison
+must use the same device; the numerical forward naturally excludes visual encoding.
