@@ -227,3 +227,32 @@ native images at full resolution. Zero tensor mismatches verifies sampled file
 loading/order, not image or label correctness. Duplicate frames may be legitimate.
 A large BatchNorm prediction shift suggests sensitivity to running statistics,
 not proof of a bug or permission to use validation batches to recalibrate them.
+
+## Fixed eight-case fine-tuning check
+
+To check fitting capacity before another full experiment, run on a GPU:
+
+```bash
+srun --ntasks=1 --gpus=1 python overfit.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_overfit_$(date +%Y%m%d_%H%M%S)"
+```
+
+This starts a fresh pretrained backbone and classifier, selecting four cases of
+each class from the chosen training fold using seed 42. The same eight cases are
+loaded once and reused for 200 optimizer steps, with classifier LR 1e-4 and
+backbone LR 1e-5. Both parts train; BatchNorm running statistics update during
+training. Dropout, weight decay, and class weighting are disabled to make fitting
+easier. Numeric normalization is fit on training data only.
+
+Every 25 steps it reports scores on these same eight cases using running
+statistics (`eval_mode`) and temporary batch statistics (`batch_statistics_mode`),
+with dropout off in both. Scoring does not modify buffers. First-update gradient
+norms and parameter changes verify both backbone and classifier learn. Config,
+progress, and summary JSON are saved, but no model checkpoint or case identifiers.
+Existing training runs are untouched. No validation or test cases are accessed.
+
+Near-perfect tiny-set accuracy and low loss show the pipeline can fit a small
+set, not that it generalizes. A gap between the two modes suggests BatchNorm
+sensitivity in this deliberately tiny experiment. Failure to fit after 200 steps
+calls for further diagnosis, not a definitive conclusion about the model.
