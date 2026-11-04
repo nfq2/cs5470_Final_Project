@@ -325,3 +325,35 @@ recover discarded epochs using this change.
 selection criterion. Decide the criterion using validation and the project goals
 before evaluating test performance; do not pick among them based on test results.
 Compare methods under the same declared selection rule.
+
+### Validation alignment and fold comparison
+
+The audit now checks both train and validation samples, saving their previews in
+separate `train/` and `validation/` subdirectories. `--samples 100000` checks every
+case in those two splits (more disk reads). It compares loaded labels, time/depth
+tensors, and all seven images to their manifest record. When supplied, label names,
+source timestamps versus relative history offsets, and chronological source frame
+indices are checked too. The goal is excluded from chronology checks. It reports
+case/episode overlap and split class counts without emitting identifiers. Missing
+optional source metadata is reflected by zero checks; it is not a pass.
+
+These checks establish consistency with the provided records, not whether the
+original action-label generation used the correct future time window. That requires
+the benchmark construction details or advisor confirmation. Anatomy IDs are absent.
+
+After the audit, repeat the existing last-stage, weight-1.2, dropout-0.1 configuration
+on fold 1 without changing other settings:
+
+```bash
+srun --ntasks=1 --gpus=1 python train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold1_last_stage_w12_d01_$(date +%Y%m%d_%H%M%S)" \
+  --fold 1 --epochs 20 --batch-size 8 --num-workers 4 \
+  --lr 1e-4 --retract-weight 1.2 --dropout 0.1 \
+  --finetune-last-stage --backbone-lr 1e-5
+```
+
+Compare validation results under the same checkpoint criterion across folds. This
+is a cross-fold validation check, not test evaluation; no fold's test data is used
+by training. Supplied folds may overlap each other, so scores are not necessarily
+independent and pooled test use would need a declared evaluation protocol.

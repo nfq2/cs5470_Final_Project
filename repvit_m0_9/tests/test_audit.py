@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 
-from audit import audit_inputs, batchnorm_sensitivity
+from audit import audit_inputs, audit_split_records, batchnorm_sensitivity
 from data_loader import ShortHorizonDataset
 import test_data_loader
 
@@ -12,6 +12,31 @@ import test_data_loader
 class AuditTests(unittest.TestCase):
     def setUp(self):
         test_data_loader.DataLoaderTests.setUp(self)
+
+    def test_validation_label_and_temporal_misalignment(self):
+        class BrokenLabels(ShortHorizonDataset):
+            def __getitem__(self, index):
+                item = super().__getitem__(index)
+                item['label'] = 1 - item['label']
+                item['depth_relative_mm'] = item['depth_relative_mm'].flip(0)
+                return item
+        dataset = BrokenLabels(self.root, split='validation', fold=7, transform=self.transform)
+        for case in dataset.cases:
+            case['source_times_s'] = [20, 5, 7, 8, 8.5, 9.5, 10]
+            case['source_frames'] = [100, 1, 2, 3, 4, 5, 6]
+        with tempfile.TemporaryDirectory() as tmp:
+            report = audit_inputs(dataset, 2, Path(tmp))['record_alignment']
+        self.assertEqual(report['label_mismatches'], 2)
+        self.assertEqual(report['depth_tensor_mismatches'], 2)
+        self.assertEqual(report['source_time_mismatches'], 0)
+        self.assertEqual(report['source_frame_order_errors'], 0)
+
+    def test_split_overlap_is_reported_without_identifiers(self):
+        train = [{'case_id': 'a', 'episode': 'shared', 'label': 0}]
+        valid = [{'case_id': 'b', 'episode': 'shared', 'label': 1}]
+        report = audit_split_records(train, valid)
+        self.assertEqual(report['case_id_overlap_count'], 0)
+        self.assertEqual(report['episode_overlap_count'], 1)
 
     def test_independent_decode_catches_repeated_frames(self):
         dataset = ShortHorizonDataset(self.root, fold=7, transform=self.transform)
