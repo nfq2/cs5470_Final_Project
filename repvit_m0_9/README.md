@@ -3,10 +3,10 @@
 ## Short-horizon data loader
 
 This folder contains Nicole's RepViT-M0.9 implementation. Run the commands below
-from this folder (`cd repvit_m0_9` from the repository root). Model construction
-and training scripts have not been implemented yet.
+from this folder (`cd repvit_m0_9` from the repository root). Model construction,
+training, and evaluation scripts are included.
 
-Requires Python 3.10+, PyTorch, and Pillow (`requirements.txt`). Install the
+Requires Python 3.10+, PyTorch, torchvision, timm, and Pillow (`requirements.txt`). Install the
 appropriate GPU-enabled PyTorch build in your Perlmutter environment for training.
 Keep the real dataset, case outputs, and images on Perlmutter, outside this repo.
 Local tests use synthetic images only.
@@ -60,3 +60,92 @@ Run synthetic tests:
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+## Model and training
+
+`model.py` uses timm's `repvit_m0_9.dist_450e_in1k` pretrained backbone.
+[Upstream implementation and checkpoint definitions](https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/repvit.py).
+Each image is encoded with shared weights. Goal features and six ordered history
+features are concatenated with 12 timing/depth values, then passed through a
+128-unit ReLU/dropout classifier with two output logits. Numeric normalization is
+fit on training cases only and stored in the checkpoint. No case IDs are inputs.
+The initial full-image resize deliberately avoids cropping away the target; it
+is not the original ImageNet center-crop evaluation recipe.
+
+Install dependencies in your chosen Perlmutter Python environment:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+Download public pretrained weights once on a login node before allocating a GPU.
+Use the same HF_HOME for training so the cached weights are found:
+
+```bash
+export HF_HOME="$PSCRATCH/huggingface"
+python3 -c 'from model import WireModel; WireModel(pretrained=True); print("Weights cached")'
+```
+
+Inside an allocated GPU session, train the classifier with the backbone frozen:
+
+```bash
+export HF_HOME="$PSCRATCH/huggingface"
+export HF_HUB_OFFLINE=1
+python3 train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_head" \
+  --fold 0 --epochs 20 --batch-size 8
+```
+
+Training defaults to CUDA and FP32, ordinary unweighted cross entropy, AdamW,
+head learning rate 0.001, and seed 42. Frozen backbone parameters and BatchNorm
+statistics stay fixed. The best checkpoint is chosen by **validation loss**;
+training never loads the test split. Each output directory must be new to prevent
+accidentally overwriting a run. Epoch metrics are saved in `history.jsonl`.
+
+Optional fine-tuning from that checkpoint (all backbone weights become trainable):
+
+```bash
+python3 train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_finetune" \
+  --init-checkpoint "$PSCRATCH/repvit_runs/fold0_head/best.pt" \
+  --finetune --lr 1e-4 --backbone-lr 1e-5 --epochs 10
+```
+
+Compare candidates using validation results before selecting one for test
+assessment. Do not use repeated test results to tune settings. Fold and image
+preprocessing must match when initializing from a prior checkpoint.
+
+## Evaluation
+
+On an allocated GPU, evaluate the chosen checkpoint:
+
+```bash
+python3 evaluate.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --checkpoint "$PSCRATCH/repvit_runs/fold0_head/best.pt" \
+  --output "$PSCRATCH/repvit_runs/fold0_head/test_metrics.json" \
+  --latency
+```
+
+Checkpoint loading does not download pretrained weights. The saved fold and
+preprocessing are reused automatically. Use `--split validation` for validation
+assessment. Output files must be new. Accuracy values are fractions, not percent.
+Reports include overall accuracy, per-class recall (called advance/retract
+accuracy), balanced accuracy, the same-split always-advance baseline, and a
+confusion matrix with rows=true and columns=predicted, ordered [retract, advance].
+A missing class produces null for its recall rather than a misleading zero.
+
+Latency uses FP32, batch size one, ten warmup forwards, and three timed forwards
+per case, with CUDA synchronization. It covers all seven image encodings and the
+classifier, but excludes disk loading, preprocessing, and CPU-to-GPU transfer.
+Mean/median/p95 and device name are recorded. Compare only with results measured
+using the same scope, GPU, precision, and input size. These are operator-action
+proxy labels; episode splits do not establish anatomy generalization.
+
+For synthetic CPU smoke tests only, `train.py` accepts `--device cpu
+--random-init --image-size 64 --epochs 1`. Random-initialization results are marked
+in checkpoints/reports and are not a pretrained-model baseline. GPU memory,
+pretrained weight download, real-data accuracy, and CUDA timing require verification
+on Perlmutter.
