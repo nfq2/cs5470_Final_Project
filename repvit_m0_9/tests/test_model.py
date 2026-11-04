@@ -2,11 +2,33 @@ import unittest
 
 import torch
 
-from engine import metrics_from_confusion
+from engine import metrics_from_confusion, run_epoch
 from model import WireModel
 
 
 class ModelTests(unittest.TestCase):
+    def test_production_epoch_changes_head_only(self):
+        torch.set_num_threads(1)
+        model = WireModel(pretrained=False)
+        batch = {"goal": torch.randn(2, 3, 64, 64),
+                 "frames": torch.randn(2, 6, 3, 64, 64),
+                 "history_offsets_s": torch.zeros(2, 6),
+                 "depth_relative_mm": torch.zeros(2, 6),
+                 "label": torch.tensor([0, 1])}
+        head_before = {k: v.clone() for k, v in model.classifier.state_dict().items()}
+        backbone_before = {k: v.clone() for k, v in model.encoder.state_dict().items()}
+        optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=1e-3)
+        run_epoch(model, [batch], torch.device('cpu'), optimizer)
+        change = max((v - head_before[k]).abs().max().item()
+                     for k, v in model.classifier.state_dict().items())
+        self.assertGreater(change, 0)
+        for k, v in model.encoder.state_dict().items():
+            torch.testing.assert_close(v, backbone_before[k], rtol=0, atol=0)
+        after_training = {k: v.clone() for k, v in model.state_dict().items()}
+        run_epoch(model, [batch], torch.device('cpu'))
+        for k, v in model.state_dict().items():
+            torch.testing.assert_close(v, after_training[k], rtol=0, atol=0)
+
     def test_frozen_backbone_and_checkpoint_roundtrip(self):
         torch.set_num_threads(1)
         model = WireModel(pretrained=False)

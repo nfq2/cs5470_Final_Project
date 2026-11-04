@@ -149,3 +149,21 @@ For synthetic CPU smoke tests only, `train.py` accepts `--device cpu
 in checkpoints/reports and are not a pretrained-model baseline. GPU memory,
 pretrained weight download, real-data accuracy, and CUDA timing require verification
 on Perlmutter.
+
+## Diagnose all-advance predictions
+
+Inside a GPU allocation, run this training-only check of actual weight updates,
+feature variation, and memorization of eight balanced training cases:
+
+```bash
+srun --ntasks=1 --gpus=1 python diagnose.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --checkpoint "$PSCRATCH/repvit_runs/fold0_head/best.pt"
+```
+
+It prints aggregate statistics only and does not change saved checkpoints.
+A positive classifier weight change proves updates occurred. Tiny-batch fitting
+uses cached frozen features with dropout disabled; it checks fitting capacity,
+not generalization. Omit the checkpoint argument to check a fresh pretrained
+backbone and newly initialized head. A failed memorization check calls for further
+inspection; it does not by itself identify a cause.
