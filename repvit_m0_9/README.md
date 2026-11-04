@@ -167,3 +167,43 @@ uses cached frozen features with dropout disabled; it checks fitting capacity,
 not generalization. Omit the checkpoint argument to check a fresh pretrained
 backbone and newly initialized head. A failed memorization check calls for further
 inspection; it does not by itself identify a cause.
+
+## Retract-weighted training and fine-tuning
+
+`--retract-weight 1.5` multiplies each true retract case's cross-entropy by 1.5;
+advance cases retain weight 1.0. The weighted per-case losses are averaged over
+the batch. This increases the relative penalty for missed retracts; it does not
+reward incorrect retract predictions. Default 1.0 preserves the original run.
+
+`loss` remains ordinary unweighted cross-entropy for consistent reporting.
+`weighted_training_loss` records the optimization objective when weighting is on.
+Validation and test are unweighted, and checkpoint selection still uses minimum
+unweighted validation loss. The weight and fine-tuning settings are saved in the
+run config and checkpoint. Improved retract recall can trade off advance recall;
+compare both and balanced accuracy on validation before test evaluation.
+
+For a controlled comparison, start both runs from the pretrained backbone and the
+same seed, not from a previous trained classifier. First run weighted head-only:
+
+```bash
+srun --ntasks=1 --gpus=1 python train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_weighted_head" \
+  --fold 0 --epochs 20 --batch-size 8 --num-workers 2 \
+  --lr 1e-4 --retract-weight 1.5
+```
+
+Then the same configuration with the backbone unfrozen:
+
+```bash
+srun --ntasks=1 --gpus=1 python train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_weighted_finetune" \
+  --fold 0 --epochs 20 --batch-size 8 --num-workers 2 \
+  --lr 1e-4 --retract-weight 1.5 --finetune --backbone-lr 1e-5
+```
+
+In fine-tuning mode all encoder weights and BatchNorm statistics can change.
+The smaller backbone learning rate limits the size of changes to pretrained
+features. Fine-tuning uses more GPU memory and can overfit the small training set;
+its benefit must be measured rather than assumed.

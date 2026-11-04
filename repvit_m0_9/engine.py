@@ -22,26 +22,40 @@ def metrics_from_confusion(cm):
     }
 
 
-def run_epoch(model, loader, device, optimizer=None):
+def run_epoch(model, loader, device, optimizer=None, class_weights=None):
+    if class_weights is not None:
+        if optimizer is None:
+            raise ValueError("Class weights apply to training only")
+        class_weights = torch.as_tensor(class_weights, dtype=torch.float32, device=device)
+        if class_weights.shape != (2,) or not torch.isfinite(class_weights).all() or not (class_weights > 0).all():
+            raise ValueError("Expected positive finite weights ordered [retract, advance]")
     model.train(optimizer is not None)
     cm = torch.zeros(2, 2, dtype=torch.long)
     total_loss = 0.0
+    total_objective = 0.0
     with torch.set_grad_enabled(optimizer is not None):
         for batch in loader:
             batch = move_batch(batch, device)
             if optimizer is not None:
                 optimizer.zero_grad(set_to_none=True)
             logits = model(batch)
-            loss = F.cross_entropy(logits, batch["label"])
+            per_case_loss = F.cross_entropy(logits, batch["label"], reduction="none")
+            loss = per_case_loss.mean()
+            # Divide by case count, not sum of weights: a retract example's
+            # contribution is literally multiplied by its specified weight.
+            objective = (per_case_loss * class_weights[batch["label"]]).mean() if class_weights is not None else loss
             if optimizer is not None:
-                loss.backward()
+                objective.backward()
                 optimizer.step()
             labels = batch["label"].detach().cpu()
             predictions = logits.detach().argmax(1).cpu()
             cm += torch.bincount(2 * labels + predictions, minlength=4).reshape(2, 2)
             total_loss += loss.item() * len(labels)
+            total_objective += objective.item() * len(labels)
     if not cm.sum():
         raise ValueError("Cannot run on an empty split")
     metrics = metrics_from_confusion(cm)
     metrics["loss"] = total_loss / metrics["cases"]
+    if class_weights is not None:
+        metrics["weighted_training_loss"] = total_objective / metrics["cases"]
     return metrics

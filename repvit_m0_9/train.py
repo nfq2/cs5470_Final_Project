@@ -1,6 +1,7 @@
 """Train on train only; choose checkpoint by validation loss, never test."""
 import argparse
 import json
+import math
 import random
 from pathlib import Path
 
@@ -23,6 +24,8 @@ def main():
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--backbone-lr", type=float, default=1e-5)
+    p.add_argument("--retract-weight", type=float, default=1.0,
+                   help="Training loss multiplier for true retract cases; advance stays 1.0")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--device", default="cuda")
     p.add_argument("--finetune", action="store_true")
@@ -31,6 +34,8 @@ def main():
     args = p.parse_args()
     if args.epochs < 1:
         p.error("epochs must be positive")
+    if not math.isfinite(args.retract_weight) or args.retract_weight <= 0:
+        p.error("retract-weight must be positive and finite")
     if args.init_checkpoint and args.random_init:
         p.error("init-checkpoint and random-init are mutually exclusive")
     random.seed(args.seed)
@@ -67,8 +72,13 @@ def main():
     config = vars(args)
     (output / "config.json").write_text(json.dumps(config, indent=2))
     best_loss = float("inf")
+    weights = [args.retract_weight, 1.0] if args.retract_weight != 1.0 else None
+    print(json.dumps({"backbone_trainable": args.finetune,
+                      "classifier_lr": args.lr, "backbone_lr": args.backbone_lr if args.finetune else None,
+                      "class_weights_retract_advance": [args.retract_weight, 1.0],
+                      "checkpoint_selection": "unweighted validation loss"}), flush=True)
     for epoch in range(1, args.epochs + 1):
-        training = run_epoch(model, train, device, optimizer)
+        training = run_epoch(model, train, device, optimizer, class_weights=weights)
         valid = run_epoch(model, validation, device)
         record = {"epoch": epoch, "train": training, "validation": valid}
         print(json.dumps(record), flush=True)

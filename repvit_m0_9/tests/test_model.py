@@ -7,6 +7,30 @@ from model import WireModel
 
 
 class ModelTests(unittest.TestCase):
+    def test_retract_weight_scales_only_retract_gradient(self):
+        class LogitsModel(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.logits = torch.nn.Parameter(torch.zeros(2, 2))
+
+            def forward(self, batch):
+                return self.logits
+
+        gradients = []
+        for weights in (None, [1.5, 1.0]):
+            model = LogitsModel()
+            optimizer = torch.optim.SGD(model.parameters(), lr=0)
+            metrics = run_epoch(model, [{"label": torch.tensor([0, 1])}],
+                                torch.device('cpu'), optimizer, class_weights=weights)
+            gradients.append(model.logits.grad.clone())
+            self.assertAlmostEqual(metrics['loss'], torch.log(torch.tensor(2.)).item())
+            if weights is not None:
+                self.assertAlmostEqual(metrics['weighted_training_loss'], 1.25 * metrics['loss'], places=6)
+        torch.testing.assert_close(gradients[1][0], 1.5 * gradients[0][0])
+        torch.testing.assert_close(gradients[1][1], gradients[0][1])
+        with self.assertRaises(ValueError):
+            run_epoch(model, [], torch.device('cpu'), class_weights=[1.5, 1.0])
+
     def test_production_epoch_changes_head_only(self):
         torch.set_num_threads(1)
         model = WireModel(pretrained=False)
