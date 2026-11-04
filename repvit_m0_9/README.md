@@ -207,3 +207,23 @@ In fine-tuning mode all encoder weights and BatchNorm statistics can change.
 The smaller backbone learning rate limits the size of changes to pretrained
 features. Fine-tuning uses more GPU memory and can overfit the small training set;
 its benefit must be measured rather than assumed.
+
+## Input and BatchNorm audit
+
+Use `audit.py --data-root ... --checkpoint ... --output-dir ...` inside a GPU
+allocation. Choose a new output directory under `$PSCRATCH`, outside the repo.
+It independently checks eight sampled training cases against decoded image files,
+reports duplicate-image counts, evaluates train and validation in evaluation mode,
+and probes BatchNorm sensitivity on training cases with dropout disabled. It never
+reads test cases. The checkpoint epoch is printed: this audits `best.pt`, not the
+last epoch unless those coincide. Model buffers and checkpoint files are preserved.
+
+The audit directory includes `audit.json`, native goal/current-frame previews, and
+resized seven-view contact sheets for two training cases. These PNGs contain
+sensitive dataset imagery: keep the entire directory on Perlmutter. View using an
+approved Perlmutter-hosted notebook/desktop; do not commit or download previews.
+Inspect whether the wire and goal marking survive the actual resize, comparing the
+native images at full resolution. Zero tensor mismatches verifies sampled file
+loading/order, not image or label correctness. Duplicate frames may be legitimate.
+A large BatchNorm prediction shift suggests sensitivity to running statistics,
+not proof of a bug or permission to use validation batches to recalibrate them.
