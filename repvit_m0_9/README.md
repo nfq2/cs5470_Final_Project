@@ -99,7 +99,7 @@ python3 train.py \
 
 Training defaults to CUDA and FP32, ordinary unweighted cross entropy, AdamW,
 head learning rate 0.001, and seed 42. Frozen backbone parameters and BatchNorm
-statistics stay fixed. The best checkpoint is chosen by **validation loss**;
+statistics stay fixed. `best.pt` is chosen by **validation loss**;
 training never loads the test split. Each output directory must be new to prevent
 accidentally overwriting a run. Epoch metrics are saved in `history.jsonl`.
 
@@ -177,8 +177,8 @@ reward incorrect retract predictions. Default 1.0 preserves the original run.
 
 `loss` remains ordinary unweighted cross-entropy for consistent reporting.
 `weighted_training_loss` records the optimization objective when weighting is on.
-Validation and test are unweighted, and checkpoint selection still uses minimum
-unweighted validation loss. The weight and fine-tuning settings are saved in the
+Validation and test are unweighted. `best.pt` uses minimum unweighted validation
+loss; `best_balanced.pt` separately tracks balanced accuracy. The weight and fine-tuning settings are saved in the
 run config and checkpoint. Improved retract recall can trade off advance recall;
 compare both and balanced accuracy on validation before test evaluation.
 
@@ -269,7 +269,7 @@ like validation. This extra pass performs no updates and uses a separate loader
 RNG so training order and dropout randomness are not affected. `train` still
 reports metrics collected during updates. Compare `train_eval` with `validation`
 to distinguish poor training-set fitting from poor generalization. The extra pass
-adds time; checkpoint selection remains unweighted validation loss.
+adds time; `best.pt` selection remains unweighted validation loss.
 
 For the comparison with the previous unweighted fine-tuning run, keep weight
 decay (1e-4), seed, fold, learning rates, batch size, and resolution unchanged:
@@ -285,3 +285,43 @@ srun --ntasks=1 --gpus=1 python train.py \
 This is full-data training, not the eight-case diagnostic. It starts from fresh
 pretrained weights and a fresh classifier. Improved tiny-case fitting does not
 guarantee improvement on validation; assess the recorded curves before testing.
+
+## Fine-tune only the last backbone stage
+
+Use `--finetune-last-stage` instead of `--finetune`. Only `encoder.stages[-1]`
+and the classifier receive updates. Earlier backbone parameters and BatchNorm
+running statistics stay frozen. The last stage uses `--backbone-lr`; the
+classifier uses `--lr`. With neither flag the entire backbone stays frozen.
+The two flags are mutually exclusive.
+
+```bash
+srun --ntasks=1 --gpus=1 python train.py \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-dir "$PSCRATCH/repvit_runs/fold0_last_stage_$(date +%Y%m%d_%H%M%S)" \
+  --fold 0 --epochs 20 --batch-size 8 --num-workers 2 \
+  --lr 1e-4 --retract-weight 1.0 --dropout 0 \
+  --finetune-last-stage --backbone-lr 1e-5
+```
+
+This keeps the no-dropout run's settings and changes only the trainable backbone
+scope. A fresh pretrained model is used unless `--init-checkpoint` is supplied.
+
+New runs save three independent files after completed epochs:
+
+| File | Selection |
+|---|---|
+| `best.pt` | Lowest unweighted validation loss (same meaning as before) |
+| `best_balanced.pt` | Highest validation balanced accuracy; ties prefer lower validation loss |
+| `last.pt` | Latest completed epoch; final epoch if the run completes |
+
+All contain model weights, normalization, configuration, epoch, validation metrics,
+and selection criterion. Writes replace the old file only after the new file is
+complete. These are model checkpoints, not full optimizer/RNG resume snapshots.
+An interrupted partial epoch is not saved. If validation lacks a class, balanced
+accuracy is undefined and no balanced checkpoint is selected. Earlier runs cannot
+recover discarded epochs using this change.
+
+`evaluate.py --checkpoint ...` accepts any of the three files and reports its
+selection criterion. Decide the criterion using validation and the project goals
+before evaluating test performance; do not pick among them based on test results.
+Compare methods under the same declared selection rule.

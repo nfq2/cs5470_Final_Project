@@ -7,6 +7,28 @@ from model import WireModel
 
 
 class ModelTests(unittest.TestCase):
+    def test_last_stage_updates_without_changing_earlier_layers(self):
+        torch.set_num_threads(1)
+        model = WireModel(pretrained=False, finetune_last_stage=True, dropout=0)
+        prefix = f'encoder.stages.{len(model.encoder.stages) - 1}.'
+        for name, p in model.named_parameters():
+            self.assertEqual(p.requires_grad, name.startswith(prefix) or name.startswith('classifier.'))
+        before = {k: v.clone() for k, v in model.state_dict().items()}
+        batch = {'goal': torch.randn(2, 3, 64, 64), 'frames': torch.randn(2, 6, 3, 64, 64),
+                 'history_offsets_s': torch.zeros(2, 6), 'depth_relative_mm': torch.zeros(2, 6),
+                 'label': torch.tensor([0, 1])}
+        optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-4)
+        run_epoch(model, [batch], torch.device('cpu'), optimizer)
+        self.assertFalse(model.encoder.stem.training)
+        self.assertTrue(model.encoder.stages[-1].training)
+        for key, value in model.state_dict().items():
+            if key.startswith('encoder.') and not key.startswith(prefix):
+                torch.testing.assert_close(value, before[key], rtol=0, atol=0)
+        self.assertTrue(any(not torch.equal(p, before[name]) for name, p in model.named_parameters()
+                            if name.startswith(prefix)))
+        model.eval()
+        self.assertFalse(model.encoder.stages[-1].training)
+
     def test_configurable_dropout_and_old_weights(self):
         model = WireModel(pretrained=False, dropout=0)
         self.assertEqual(model.classifier[2].p, 0)

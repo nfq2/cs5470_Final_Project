@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 from data_loader import ImagePreprocess, make_dataloader
 from engine import run_epoch
 from model import MODEL_NAME, WireModel
+from checkpoints import CheckpointWriter
 
 
 def main():
@@ -31,7 +32,10 @@ def main():
                    help="Training loss multiplier for true retract cases; advance stays 1.0")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--device", default="cuda")
-    p.add_argument("--finetune", action="store_true")
+    scope = p.add_mutually_exclusive_group()
+    scope.add_argument("--finetune", action="store_true", help="Train the entire backbone")
+    scope.add_argument("--finetune-last-stage", action="store_true",
+                       help="Train only the last backbone stage and classifier")
     p.add_argument("--init-checkpoint", help="Optional earlier head-training checkpoint")
     p.add_argument("--random-init", action="store_true", help="Synthetic smoke tests only; disables pretrained weights")
     args = p.parse_args()
@@ -51,7 +55,8 @@ def main():
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=False)
     model = WireModel(pretrained=not (args.random_init or args.init_checkpoint),
-                      freeze_backbone=not args.finetune, dropout=args.dropout)
+                      freeze_backbone=not args.finetune, dropout=args.dropout,
+                      finetune_last_stage=args.finetune_last_stage)
     cfg = model.encoder.pretrained_cfg
     preprocessing = {"size": [args.image_size, args.image_size],
                      "mean": list(cfg["mean"]), "std": list(cfg["std"])}
@@ -76,18 +81,21 @@ def main():
     model.fit_history_normalization(train.dataset.cases)
     model.to(device)
     groups = [{"params": model.classifier.parameters(), "lr": args.lr}]
-    if args.finetune:
-        groups.append({"params": model.encoder.parameters(), "lr": args.backbone_lr})
+    backbone_params = [p for p in model.encoder.parameters() if p.requires_grad]
+    if backbone_params:
+        groups.append({"params": backbone_params, "lr": args.backbone_lr})
     optimizer = torch.optim.AdamW(groups, weight_decay=1e-4)
     config = vars(args)
     (output / "config.json").write_text(json.dumps(config, indent=2))
-    best_loss = float("inf")
+    checkpoints = CheckpointWriter(output)
     weights = [args.retract_weight, 1.0] if args.retract_weight != 1.0 else None
-    print(json.dumps({"backbone_trainable": args.finetune,
+    print(json.dumps({"backbone_trainable": bool(backbone_params),
+                      "backbone_scope": "last_stage" if args.finetune_last_stage else "all" if args.finetune else "frozen",
+                      "trainable_backbone_parameters": sum(p.numel() for p in backbone_params),
                       "dropout": args.dropout,
-                      "classifier_lr": args.lr, "backbone_lr": args.backbone_lr if args.finetune else None,
+                      "classifier_lr": args.lr, "backbone_lr": args.backbone_lr if backbone_params else None,
                       "class_weights_retract_advance": [args.retract_weight, 1.0],
-                      "checkpoint_selection": "unweighted validation loss"}), flush=True)
+                      "checkpoint_selection": "best.pt: validation loss; best_balanced.pt: validation balanced accuracy; last.pt: latest completed epoch"}), flush=True)
     for epoch in range(1, args.epochs + 1):
         training = run_epoch(model, train, device, optimizer, class_weights=weights)
         valid = run_epoch(model, validation, device)
@@ -97,15 +105,12 @@ def main():
         print(json.dumps(record), flush=True)
         with (output / "history.jsonl").open("a") as f:
             f.write(json.dumps(record) + "\n")
-        if valid["loss"] < best_loss:
-            best_loss = valid["loss"]
-            torch.save({"model": model.state_dict(), "config": config,
+        checkpoints.save({"model": model.state_dict(), "config": config,
                         "preprocessing": preprocessing, "epoch": epoch,
                         "validation": valid, "pretrained": pretrained,
                         "model_name": MODEL_NAME,
-                        "versions": {"torch": str(torch.__version__), "timm": timm.__version__}},
-                       output / "best.pt")
-    print("Saved best validation-loss checkpoint:", output / "best.pt")
+                        "versions": {"torch": str(torch.__version__), "timm": timm.__version__}})
+    print("Saved checkpoints in", output, ": best.pt, best_balanced.pt, last.pt")
 
 
 if __name__ == "__main__":

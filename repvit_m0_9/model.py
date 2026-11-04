@@ -9,13 +9,17 @@ MODEL_NAME = "repvit_m0_9.dist_450e_in1k"
 
 
 class WireModel(nn.Module):
-    def __init__(self, pretrained=True, freeze_backbone=True, hidden_dim=128, dropout=0.3):
+    def __init__(self, pretrained=True, freeze_backbone=True, hidden_dim=128, dropout=0.3,
+                 finetune_last_stage=False):
         super().__init__()
         if not 0 <= dropout < 1:
             raise ValueError("dropout must be between 0 (inclusive) and 1 (exclusive)")
         self.encoder = timm.create_model(MODEL_NAME, pretrained=pretrained, num_classes=0)
-        self.freeze_backbone = freeze_backbone
-        self.encoder.requires_grad_(not freeze_backbone)
+        self.finetune_last_stage = finetune_last_stage
+        self.freeze_backbone = freeze_backbone and not finetune_last_stage
+        self.encoder.requires_grad_(not self.freeze_backbone and not finetune_last_stage)
+        if finetune_last_stage:
+            self.encoder.stages[-1].requires_grad_(True)
         self.register_buffer("history_mean", torch.zeros(12))
         self.register_buffer("history_std", torch.ones(12))
         self.classifier = nn.Sequential(
@@ -29,6 +33,9 @@ class WireModel(nn.Module):
         # Frozen BatchNorm statistics must not change during head training.
         if self.freeze_backbone:
             self.encoder.eval()
+        elif self.finetune_last_stage:
+            self.encoder.eval()
+            self.encoder.stages[-1].train(mode)
         return self
 
     def forward(self, batch):

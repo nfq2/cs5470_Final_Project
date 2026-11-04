@@ -38,6 +38,7 @@ def main():
                   num_workers=args.num_workers)
     loader = make_dataloader(batch_size=args.batch_size, **common)
     result = {"split": args.split, "fold": checkpoint["config"]["fold"],
+              "checkpoint_selection": checkpoint.get("selection_criterion", "minimum unweighted validation loss (legacy)"),
               "checkpoint_epoch": checkpoint["epoch"], "pretrained": checkpoint["pretrained"],
               "metrics": run_epoch(model, loader, device),
               "confusion_matrix_order": "rows=true, columns=predicted; [retract, advance]"}
