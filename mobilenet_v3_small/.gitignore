@@ -1,0 +1,4 @@
+*.pt
+*.csv
+*_results.json
+runs/
