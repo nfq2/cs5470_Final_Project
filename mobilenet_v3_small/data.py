@@ -1,5 +1,5 @@
 """ResNet-compatible data loading; real data must stay on Perlmutter."""
-import json
+import sys
 from pathlib import Path
 
 import torch
@@ -7,26 +7,13 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common.data import load_split  # noqa: E402
+
 
 def load_data(data_root, fold=0):
-    root = Path(data_root).expanduser().resolve()
-    with (root / "cases.jsonl").open() as f:
-        cases = [json.loads(line) for line in f if line.strip()]
-    with (root / "splits.json").open() as f:
-        matches = [item for item in json.load(f) if item["fold"] == fold]
-    if len(matches) != 1:
-        raise ValueError("Choose exactly one supplied fold ID")
-    split = matches[0]
-    groups = [split[name] for name in ("train", "validation", "test")]
-    indices = [i for group in groups for i in group]
-    if any(type(i) is not int or not 0 <= i < len(cases) for i in indices):
-        raise ValueError("Invalid case index in supplied split")
-    if any(not group for group in groups) or len(indices) != len(set(indices)):
-        raise ValueError("Split groups must be nonempty and disjoint")
-    episodes = [{cases[i]["episode"] for i in group} for group in groups]
-    if episodes[0] & episodes[1] or episodes[0] & episodes[2] or episodes[1] & episodes[2]:
-        raise ValueError("Overlapping episodes in supplied split")
-    return cases, split
+    # The team's shared loader: same split and checks for every model.
+    return load_split(fold, data_root)
 
 
 def get_history(case):

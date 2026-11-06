@@ -14,10 +14,11 @@ class HistoryBaselineTests(unittest.TestCase):
     def test_no_images_and_split_alignment(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            cases = [dict(label=i % 2, history_offsets_s=[-5,-4,-3,-2,-1,0],
+            cases = [dict(label=i % 2, episode=i, paths=['unused.png'] * 7,
+                          history_offsets_s=[-5,-4,-3,-2,-1,0],
                           depth_relative_mm=[-i,-i,-i,-i,-i,0]) for i in range(3)]
-            (root/'manifest.json').write_text(json.dumps({'cases': cases}))
-            (root/'splits.json').write_text(json.dumps([{'fold': 2, 'train': [1], 'validation': [2], 'test': []}]))
+            (root/'cases.jsonl').write_text(''.join(json.dumps(c) + '\n' for c in cases))
+            (root/'splits.json').write_text(json.dumps([{'fold': 2, 'train': [1], 'validation': [2], 'test': [0]}]))
             with patch('PIL.Image.open', side_effect=AssertionError('Image opened')):
                 dataset = HistoryDataset(root, fold=2)
                 item = dataset[0]

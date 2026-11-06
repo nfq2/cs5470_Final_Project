@@ -11,8 +11,9 @@ appropriate GPU-enabled PyTorch build in your Perlmutter environment for trainin
 Keep the real dataset, case outputs, and images on Perlmutter, outside this repo.
 Local tests use synthetic images only.
 
-`data_loader.py` loads the supplied `manifest.json` and `splits.json`. Split
-entries index the manifest's cases array. `fold` selects the stored fold ID;
+`data_loader.py` gets cases and splits from the team's shared loader
+(`common/data.py`), which reads `cases.jsonl` and `splits.json`. Split
+entries index the cases in file order. `fold` selects the stored fold ID;
 everyone should use the same fold for comparisons. No new splits are generated.
 
 ```python

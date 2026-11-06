@@ -28,11 +28,11 @@ class DataLoaderTests(unittest.TestCase):
             history_offsets_s=[-5, -3, -2, -1.5, -0.5, 0],
             depth_relative_mm=[-10, -8, -6, -4, -2, 0],
         )
-        self.cases = [dict(case, label=i % 2) for i in range(3)]
-        (self.root / "manifest.json").write_text(json.dumps({"cases": self.cases}))
+        self.cases = [dict(case, label=i % 2, episode=i) for i in range(4)]
+        (self.root / "cases.jsonl").write_text("".join(json.dumps(c) + "\n" for c in self.cases))
         # Nonsequential fold ID and reordered indices catch positional assumptions.
         (self.root / "splits.json").write_text(json.dumps([
-            {"fold": 7, "train": [1], "validation": [2, 0], "test": [0]}
+            {"fold": 7, "train": [1], "validation": [2, 0], "test": [3]}
         ]))
         self.transform = ImagePreprocess((8, 8), mean=(0, 0, 0), std=(1, 1, 1))
 

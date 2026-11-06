@@ -10,6 +10,7 @@ from data_loader import ImagePreprocess, make_dataloader
 from engine import move_batch, run_epoch
 from model import WireModel
 from history_baseline import HistoryModel, make_history_loader
+from common.metrics import report  # data_loader.py puts the repository root on sys.path
 
 
 def main():
@@ -48,6 +49,14 @@ def main():
               "checkpoint_epoch": checkpoint["epoch"], "pretrained": checkpoint["pretrained"],
               "metrics": run_epoch(model, loader, device),
               "confusion_matrix_order": "rows=true, columns=predicted; [retract, advance]"}
+    # Same numbers every model reports, including AUROC, from P(advance).
+    labels, probs = [], []
+    with torch.inference_mode():
+        for batch in loader:
+            batch = move_batch(batch, device)
+            probs.extend(model(batch).softmax(1)[:, 1].cpu().tolist())
+            labels.extend(batch["label"].cpu().tolist())
+    result["shared_report"] = report(labels, probs)
     if args.latency:
         single = loader_factory(batch_size=1, **common)
         def synchronize():

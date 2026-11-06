@@ -1,6 +1,6 @@
 """Read the provided examples and episode-based split."""
-import json
 import os
+import sys
 from pathlib import Path
 
 import torch
@@ -8,21 +8,15 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from common.data import load_split  # noqa: E402
+
 DATA_DIR = Path(os.environ["PSCRATCH"]) / "finalproject/shorthorizon2"
 
 
 def load_data(fold=0):
-    with open(DATA_DIR / "cases.jsonl") as f:
-        cases = [json.loads(line) for line in f if line.strip()]
-    with open(DATA_DIR / "splits.json") as f:
-        split = json.load(f)[fold]
-
-    # A procedure must not appear in more than one group.
-    episodes = [{cases[i]["episode"] for i in split[group]}
-                for group in ["train", "validation", "test"]]
-    assert not (episodes[0] & episodes[1] or episodes[0] & episodes[2]
-                or episodes[1] & episodes[2]), "Overlapping episodes in split!"
-    return cases, split
+    # The team's shared loader: same split and checks for every model.
+    return load_split(fold, DATA_DIR)
 
 
 def get_history(case):

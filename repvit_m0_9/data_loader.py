@@ -1,12 +1,15 @@
 """Short-horizon data loading for RepViT. Real data stays on Perlmutter."""
 
-import json
+import sys
 from pathlib import Path
 from typing import Callable, Optional, Sequence
 
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common.data import load_split  # noqa: E402
 
 
 class ImagePreprocess:
@@ -44,8 +47,9 @@ class ImagePreprocess:
 class ShortHorizonDataset(Dataset):
     """One item = separate goal, six ordered frames, timing/depth, one label.
 
-    Split entries index manifest['cases']; fold selects the stored fold ID,
-    not the position of the fold in splits.json. Identifiers are not model inputs.
+    Cases and split come from the team's shared loader (common/data.py): split entries
+    index cases.jsonl; fold selects the stored fold ID, not the position of the fold in
+    splits.json. Identifiers are not model inputs.
     transform must return a CHW tensor and should be deterministic. For spatial
     augmentation, implement a case-level transform that synchronizes all images.
     """
@@ -60,16 +64,8 @@ class ShortHorizonDataset(Dataset):
         if split not in {"train", "validation", "test"}:
             raise ValueError("split must be train, validation, or test")
         self.root = Path(root).expanduser().resolve()
-        manifest = json.loads((self.root / "manifest.json").read_text())
-        splits = json.loads((self.root / "splits.json").read_text())
-        matches = [item for item in splits if item["fold"] == fold]
-        if len(matches) != 1:
-            raise ValueError("fold must identify exactly one supplied split")
-        cases = manifest["cases"]
-        indices = matches[0][split]
-        if any(type(i) is not int or not 0 <= i < len(cases) for i in indices):
-            raise ValueError("Split contains an invalid case index")
-        self.cases = [cases[i] for i in indices]
+        cases, splits = load_split(fold, self.root)
+        self.cases = [cases[i] for i in splits[split]]
         self.transform = transform if transform is not None else ImagePreprocess()
 
     def __len__(self):
