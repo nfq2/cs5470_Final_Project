@@ -5,7 +5,6 @@ Model implementations live in separate folders:
 - [ResNet-18](finalproject/resnet/README.md): Saesha's baseline.
 - [RepViT-M0.9](repvit_m0_9/README.md): Nicole's model workflow.
 - [MobileNetV3-Small](mobilenet_v3_small/README.md): Amelia's baseline.
-- [DINOv2](finalproject/dino/README.md): Akhil's frozen-backbone experiments.
 
 Keep the sensitive dataset on Perlmutter, outside this repository. See
 [finalproject/README.md](finalproject/README.md) for the dataset and
@@ -67,5 +66,5 @@ Check on Perlmutter: `python common/check.py` and `python -m unittest discover c
 ### Not shared yet
 
 - RepViT uses its own latency protocol (10 warm-up calls, 3 timed per case).
-- ResNet and MobileNet run one fold at a time; only DINOv2 pools the five folds.
+- ResNet and MobileNet run one fold at a time; nothing pools the five folds for them yet.
 - Checkpoint selection differs by model; state it when reporting.
