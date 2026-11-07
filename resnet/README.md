@@ -144,7 +144,7 @@ model.eval() and torch.no_grad(), as shown in evaluate.py. Images have shape
 [batch, 7, 3, 448, 448]; history is [batch, 12], depths followed by time offsets.
 The saved state includes the history normalization.
 
-The actual fold-0 baseline metrics and training curve are stored in
+The official pooled five-fold baseline metrics and training curves are stored in
 [`../results/resnet_baseline`](../results/resnet_baseline). The shared,
-graph-ready rows are in [`../results/summary.csv`](../results/summary.csv).
-The model checkpoint remains outside Git because it is a generated binary.
+graph-ready row is in [`../results/summary.csv`](../results/summary.csv).
+Large model checkpoints and raw prediction files remain outside Git.

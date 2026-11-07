@@ -12,6 +12,9 @@ Midpoint metrics are collected in [results/summary.csv](results/summary.csv).
 The committed ResNet result is the basic baseline only; large checkpoints remain
 outside Git.
 
+The standardized five-fold ResNet result is in
+[results/resnet_baseline](results/resnet_baseline/README.md).
+
 Keep the sensitive dataset on Perlmutter, outside this repository. See
 [DATASET.md](DATASET.md) for the dataset and
 [common/DATA_SETUP.md](common/DATA_SETUP.md) for getting a copy.

@@ -1,0 +1,20 @@
+{
+  "protocol": "midpoint_baseline_v1",
+  "model": "resnet18",
+  "variant": "baseline",
+  "folds": [0, 1, 2, 3, 4],
+  "split": "pooled_test",
+  "n": 416,
+  "overall_accuracy": 0.6225961538461539,
+  "advance_accuracy": 1.0,
+  "retract_accuracy": 0.0,
+  "balanced_accuracy": 0.5,
+  "auroc": 0.4862036741017633,
+  "always_advance_accuracy": 0.6225961538461539,
+  "forward_latency_mean_ms": 6.150946142151952,
+  "forward_latency_median_ms": 6.149362481664866,
+  "latency_measurements": 500,
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "image_size": 448,
+  "precision": "FP32, TF32 disabled"
+}
