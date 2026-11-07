@@ -1,5 +1,8 @@
 # Frozen DINOv2 — Akhil
 
+The standardized four-architecture baseline for DINOv2 is in [baseline/](baseline/README.md).
+This folder holds the experiments and diagnostics around it.
+
 A frozen DINOv2 backbone with a small trained head. Design and decisions are in
 [PLAN.md](PLAN.md); terms are defined in [CONTEXT.md](CONTEXT.md).
 
