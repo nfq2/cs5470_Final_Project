@@ -1,0 +1,16 @@
+{
+  "model_latency_mean_ms": 105.7331948459614,
+  "model_latency_median_ms": 105.72501149727032,
+  "end_to_end_latency_mean_ms": 108.0811083491426,
+  "end_to_end_latency_median_ms": 108.07784751523286,
+  "live_vs_cached_max_logit_diff": 5.364418029785156e-06,
+  "backbone": "vit_small_patch14_dinov2.lvd142m",
+  "image_size": 448,
+  "tiles": 2,
+  "backbone_params_m": 21.923712,
+  "head_params_k": 163.81,
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "batch": "1 decision point (7 images)",
+  "precision": "FP32, TF32 disabled",
+  "repetitions": "20 warmup, 100 timed"
+}

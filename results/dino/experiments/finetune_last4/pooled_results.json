@@ -1,0 +1,22 @@
+{
+  "validation": {
+    "folds": 5,
+    "n": 352,
+    "overall_accuracy": 0.5625,
+    "advance_accuracy": 0.7171717171717171,
+    "retract_accuracy": 0.36363636363636365,
+    "balanced_accuracy": 0.5404040404040404,
+    "auroc": 0.5630821199003018,
+    "always_advance_accuracy": 0.5625
+  },
+  "test": {
+    "folds": 5,
+    "n": 416,
+    "overall_accuracy": 0.5336538461538461,
+    "advance_accuracy": 0.6525096525096525,
+    "retract_accuracy": 0.33757961783439494,
+    "balanced_accuracy": 0.49504463517202374,
+    "auroc": 0.5023608686029069,
+    "always_advance_accuracy": 0.6225961538461539
+  }
+}

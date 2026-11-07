@@ -1,0 +1,26 @@
+{
+  "protocol": "midpoint_baseline_v1",
+  "model": "dinov2_small",
+  "variant": "baseline",
+  "folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "split": "pooled_test",
+  "n": 416,
+  "overall_accuracy": 0.6153846153846154,
+  "advance_accuracy": 0.9806949806949807,
+  "retract_accuracy": 0.01273885350318471,
+  "balanced_accuracy": 0.4967169170990827,
+  "auroc": 0.4900892703440474,
+  "always_advance_accuracy": 0.6225961538461539,
+  "forward_latency_mean_ms": 28.980547681683674,
+  "forward_latency_median_ms": 28.980544942896813,
+  "latency_measurements": 500,
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "image_size": 448,
+  "precision": "FP32, TF32 disabled"
+}

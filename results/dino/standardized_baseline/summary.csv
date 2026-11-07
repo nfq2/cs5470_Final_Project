@@ -1,0 +1,2 @@
+protocol,model,variant,split,n,overall_accuracy,advance_accuracy,retract_accuracy,balanced_accuracy,auroc,always_advance_accuracy,forward_latency_mean_ms,forward_latency_median_ms,latency_measurements,image_size,precision,gpu
+midpoint_baseline_v1,dinov2_small,baseline,pooled_test,416,0.6153846153846154,0.9806949806949807,0.01273885350318471,0.4967169170990827,0.4900892703440474,0.6225961538461539,28.980547681683674,28.980544942896813,500,448,"FP32, TF32 disabled",NVIDIA A100-SXM4-40GB

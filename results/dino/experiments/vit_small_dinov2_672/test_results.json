@@ -1,0 +1,23 @@
+{
+  "fold0": {
+    "n": 69,
+    "overall_accuracy": 0.42028985507246375,
+    "advance_accuracy": 0.5581395348837209,
+    "retract_accuracy": 0.1923076923076923,
+    "balanced_accuracy": 0.3752236135957066,
+    "auroc": 0.33810375670840787,
+    "always_advance_accuracy": 0.6231884057971014
+  },
+  "pooled": {
+    "n": 69,
+    "overall_accuracy": 0.42028985507246375,
+    "advance_accuracy": 0.5581395348837209,
+    "retract_accuracy": 0.1923076923076923,
+    "balanced_accuracy": 0.3752236135957066,
+    "auroc": 0.33810375670840787,
+    "always_advance_accuracy": 0.6231884057971014
+  },
+  "folds": [
+    "fold0"
+  ]
+}
