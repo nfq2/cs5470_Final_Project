@@ -4,14 +4,13 @@ These steps reproduce our local dataset setup for the Project Waldo advance/retr
 
 **The dataset is sensitive and must stay on Perlmutter. Do not download it to your computer.**
 
-## 1. Create a project folder
+## 1. Open the team repository
 
 ```bash
-mkdir -p ~/finalproject
-cd ~/finalproject
+cd ~/cs5470_Final_Project
 ```
 
-This folder holds the Python code and instructions.
+The model folders and shared utilities are already in this repository.
 
 ## 2. Copy the dataset into your scratch space
 
@@ -57,18 +56,13 @@ The directory should contain:
 
 The supplied student dataset contains 416 decision points from 120 episodes: 259 advance and 157 retract cases.
 
-## 4. Make the README and data accessible from the project folder
+## 4. Optionally add a data shortcut to the repository
 
-Copy the dataset README into the main folder so it can be opened in the file browser:
-
-```bash
-cp "$PSCRATCH/finalproject/shorthorizon2/README.md" ~/finalproject/README.md
-```
-
-Optionally create a shortcut to the dataset:
+The repository already contains `DATASET.md`. To make the Perlmutter data visible
+in the repository file browser, create an ignored shortcut:
 
 ```bash
-ln -s "$PSCRATCH/finalproject/shorthorizon2" ~/finalproject/data
+ln -s "$PSCRATCH/finalproject/shorthorizon2" ~/cs5470_Final_Project/data
 ```
 
 Create this shortcut once. If `data` already exists, skip that command. Refresh the file browser after creating it. The shortcut points to the scratch copy; it does not move or duplicate the dataset.

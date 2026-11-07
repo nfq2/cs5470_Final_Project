@@ -1,4 +1,4 @@
-# Simple ResNet-18 baseline
+# ResNet-18 baseline
 
 Four Python files. You allocate the GPU and run each step yourself.
 This replaces the previous larger starter package; it is a separate, simpler version.
@@ -26,14 +26,12 @@ For this first baseline, ResNet's weights and BatchNorm statistics stay frozen;
 only the added classifier learns. This is a starting experiment, not evidence
 that frozen features or 448-pixel resizing are optimal for thin guidewires.
 
-## Put these files on Perlmutter
+## Repository and data locations
 
-Upload the four Python files into ~/finalproject. Keep the data at:
-$PSCRATCH/finalproject/shorthorizon2
-
-Use a terminal opened inside ~/finalproject. You do not need the old submit.sh
-or batch scripts for this version. No dataset or derived outputs should leave
-Perlmutter without your advisor's permission.
+The code lives in `~/cs5470_Final_Project/resnet`. Keep the data and generated
+run files on Perlmutter outside the repository. The commands below use
+`$PSCRATCH/finalproject/shorthorizon2` for the dataset and
+`$PSCRATCH/finalproject/resnet_results` for run outputs.
 
 ## 1. Load PyTorch and cache public weights on the login node
 
@@ -62,10 +60,12 @@ If already inside an allocated GPU terminal, skip this allocation step.
 ## 3. Train on that GPU
 
 ```bash
-cd ~/finalproject
+cd ~/cs5470_Final_Project/resnet
 module load pytorch/2.8.0
 export TORCH_HOME="$PSCRATCH/finalproject/torch_cache"
-python train.py
+python data.py --data-root "$PSCRATCH/finalproject/shorthorizon2" --fold 0
+python train.py --data-root "$PSCRATCH/finalproject/shorthorizon2" \
+  --output-dir "$PSCRATCH/finalproject/resnet_results/fold0_baseline" --fold 0
 ```
 
 Settings are ordinary constants at the top of train.py: first provided fold
@@ -73,21 +73,32 @@ Settings are ordinary constants at the top of train.py: first provided fold
 Coordinate split and preprocessing with your teammates. No random image split,
 augmentation, class weighting or mixed precision is used in this baseline.
 
+Pass `--dropout 0.1` to test lower classifier dropout in a separate output
+directory. The checkpoint records the value and evaluation restores it.
+
+Other controlled options are `--retract-weight`, `--finetune-layer4`,
+`--backbone-lr`, `--selection {val_loss,balanced_accuracy,auroc}`, and
+`--image-size`. Always use a new output directory for each configuration and
+choose configurations on validation before evaluating test.
+
 Data loaders use four CPU workers to prepare images. Each epoch reports overall,
 advance, retract and balanced validation accuracy. Balanced accuracy is the mean
 of advance and retract accuracy. Checkpoint selection still uses validation loss.
 
-Training writes resnet18.pt and training.csv in the current directory. Running
-training again overwrites these files; copy them to a separate run folder on
-Perlmutter first if you want to preserve an experiment.
+Training creates a new run directory containing `config.json`, `best.pt`, and
+`training.csv`. It refuses to reuse an existing directory so prior runs are not
+overwritten.
 
 ## 4. Evaluate validation performance
 
 ```bash
-python evaluate.py validation
+python evaluate.py --data-root "$PSCRATCH/finalproject/shorthorizon2" \
+  --checkpoint "$PSCRATCH/finalproject/resnet_results/fold0_baseline/best.pt" \
+  --split validation \
+  --output "$PSCRATCH/finalproject/resnet_results/fold0_baseline/validation.json"
 ```
 
-It prints metrics (including balanced accuracy) and writes validation_results.json. Accuracies are fractions:
+It prints metrics and writes them to `validation.json`. Accuracies are fractions:
 0.75 means 75%. Advance/retract accuracy means recall on that class. The
 always-advance baseline is computed on this subset, rather than assuming 62%.
 
@@ -101,10 +112,13 @@ TF32 disabled. This script does not claim end-to-end system latency.
 ## 5. Evaluate test performance after fixing the model settings
 
 ```bash
-python evaluate.py test
+python evaluate.py --data-root "$PSCRATCH/finalproject/shorthorizon2" \
+  --checkpoint "$PSCRATCH/finalproject/resnet_results/fold0_baseline/best.pt" \
+  --split test \
+  --output "$PSCRATCH/finalproject/resnet_results/fold0_baseline/test.json"
 ```
 
-This writes test_results.json. Use validation to choose settings; do not tune
+This writes `test.json`. Use validation to choose settings; do not tune
 based on repeated test results. This version runs one of the five provided splits.
 
 To predict a batch in your own code, use model(images, history).argmax(1) with
@@ -112,5 +126,7 @@ model.eval() and torch.no_grad(), as shown in evaluate.py. Images have shape
 [batch, 7, 3, 448, 448]; history is [batch, 12], depths followed by time offsets.
 The saved state includes the history normalization.
 
-The submitted code has no results on the sensitive dataset yet. GPU accuracy
-and latency must be measured on Perlmutter.
+The actual fold-0 baseline metrics and training curve are stored in
+[`../results/resnet_baseline`](../results/resnet_baseline). The shared,
+graph-ready rows are in [`../results/summary.csv`](../results/summary.csv).
+The model checkpoint remains outside Git because it is a generated binary.
