@@ -1,0 +1,26 @@
+{
+  "protocol": "midpoint_baseline_v1",
+  "model": "mobilenet_v3_small",
+  "variant": "baseline",
+  "folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "split": "pooled_test",
+  "n": 416,
+  "overall_accuracy": 0.5817307692307693,
+  "advance_accuracy": 0.7837837837837838,
+  "retract_accuracy": 0.24840764331210186,
+  "balanced_accuracy": 0.5160957135479428,
+  "auroc": 0.49620047709219683,
+  "always_advance_accuracy": 0.6225961538461539,
+  "forward_latency_mean_ms": 8.04965485795401,
+  "forward_latency_median_ms": 8.132984512485564,
+  "latency_measurements": 500,
+  "gpu": "NVIDIA A100-PCIE-40GB",
+  "image_size": 448,
+  "precision": "FP32, TF32 disabled"
+}

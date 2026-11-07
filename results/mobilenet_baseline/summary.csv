@@ -1,0 +1,2 @@
+protocol,model,variant,split,n,overall_accuracy,advance_accuracy,retract_accuracy,balanced_accuracy,auroc,always_advance_accuracy,forward_latency_mean_ms,forward_latency_median_ms,latency_measurements,image_size,precision,gpu
+midpoint_baseline_v1,mobilenet_v3_small,baseline,pooled_test,416,0.5817307692307693,0.7837837837837838,0.24840764331210186,0.5160957135479428,0.49620047709219683,0.6225961538461539,8.04965485795401,8.132984512485564,500,448,"FP32, TF32 disabled",NVIDIA A100-PCIE-40GB

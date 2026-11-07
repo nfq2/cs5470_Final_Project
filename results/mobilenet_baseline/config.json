@@ -1,0 +1,29 @@
+{
+  "protocol": "midpoint_baseline_v1",
+  "model": "mobilenet_v3_small",
+  "folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "epochs": 20,
+  "batch_size": 8,
+  "image_size": 448,
+  "learning_rate": 0.001,
+  "optimizer": "Adam",
+  "weight_decay": 0.0,
+  "dropout": 0.3,
+  "classifier_hidden_dim": 128,
+  "seed": 42,
+  "pretrained": true,
+  "backbone_frozen": true,
+  "loss": "unweighted cross entropy",
+  "checkpoint_selection": "minimum unweighted validation loss within each fold",
+  "precision": "FP32; TF32 disabled",
+  "latency_warmups_per_fold": 20,
+  "latency_repetitions_per_fold": 100,
+  "checkpoint_source": "original matching MobileNet runs",
+  "re_evaluated_without_retraining": true
+}

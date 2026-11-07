@@ -12,7 +12,13 @@ The completed standardized ResNet baseline is in
 four-architecture comparison, and `training_history.csv` contains all epoch-level
 values needed for learning-curve graphs.
 
-## Current result
+The standardized MobileNet results are in
+[`mobilenet_baseline/`](mobilenet_baseline/). Its `summary.csv` reports
+pooled metrics from five existing checkpoints re-evaluated without retraining.
+The fold table preserves the earlier measurements, and `training_history.csv`
+contains all 100 epoch summaries.
+
+## Current results
 
 `resnet_baseline/` contains Saesha's official standardized five-fold baseline.
 It uses a frozen ImageNet-pretrained backbone, dropout 0.3, no class weighting,
@@ -22,3 +28,7 @@ later optimization and ensemble experiments.
 The reported latency is a batch-one FP32 forward pass for seven images and the
 insertion-depth/time history. Inputs were already on the GPU, so data loading,
 preprocessing, CPU-to-GPU transfer, and startup are excluded.
+
+Check the `gpu` column before comparing latencies. MobileNet's standardized
+latency was measured on an A100-PCIE-40GB; ResNet and DINOv2's standardized
+latencies were measured on an A100-SXM4-40GB.
