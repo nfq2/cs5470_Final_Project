@@ -9,7 +9,7 @@ from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from common.data import load_split  # noqa: E402
+from common.data import load_split, ShortHorizonDataset as SharedDataset  # noqa: E402
 
 
 class ImagePreprocess:
@@ -44,7 +44,7 @@ class ImagePreprocess:
         return (pixels - self.mean) / self.std
 
 
-class ShortHorizonDataset(Dataset):
+class ShortHorizonDataset(SharedDataset, Dataset):
     """One item = separate goal, six ordered frames, timing/depth, one label.
 
     Cases and split come from the team's shared loader (common/data.py): split entries
@@ -65,8 +65,9 @@ class ShortHorizonDataset(Dataset):
             raise ValueError("split must be train, validation, or test")
         self.root = Path(root).expanduser().resolve()
         cases, splits = load_split(fold, self.root)
-        self.cases = [cases[i] for i in splits[split]]
-        self.transform = transform if transform is not None else ImagePreprocess()
+        super().__init__(cases, splits[split],
+                         transform if transform is not None else ImagePreprocess(),
+                         root=self.root)
 
     def __len__(self):
         return len(self.cases)
@@ -99,14 +100,10 @@ class ShortHorizonDataset(Dataset):
             raise ValueError("Relative depth must end at zero")
         if case["label"] not in (0, 1):
             raise ValueError("Label must be RETRACT=0 or ADVANCE=1")
-        images = [self._image(path) for path in case["paths"]]
-        return {
-            "goal": images[0],
-            "frames": torch.stack(images[1:]),
-            "history_offsets_s": times,
-            "depth_relative_mm": depths,
-            "label": torch.tensor(case["label"], dtype=torch.long),
-        }
+        batch = super().__getitem__(index)
+        images = batch.pop("images")
+        return {"goal": images[0], "frames": images[1:], **batch}
+
 
 
 def make_dataloader(

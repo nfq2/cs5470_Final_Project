@@ -87,17 +87,19 @@ class ShortHorizonDataset:
     def __len__(self):
         return len(self.cases)
 
+    def _image(self, path):
+        from PIL import Image
+
+        with Image.open(self.root / path) as image:
+            return self.transform(image.convert("RGB"))
+
     def __getitem__(self, index):
         import torch
-        from PIL import Image
 
         case = self.cases[index]
         if case.get("image_roles", ROLES) != ROLES:
             raise ValueError("Expected goal map followed by six chronological frames")
-        images = []
-        for path in case[self.key]:
-            with Image.open(self.root / path) as image:
-                images.append(self.transform(image.convert("RGB")))
+        images = [self._image(path) for path in case[self.key]]
         return {"images": torch.stack(images),
                 "history_offsets_s": torch.tensor(case["history_offsets_s"], dtype=torch.float32),
                 "depth_relative_mm": torch.tensor(case["depth_relative_mm"], dtype=torch.float32),

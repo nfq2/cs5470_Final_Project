@@ -43,20 +43,15 @@ def main():
     if not numerical_only:
         common['transform'] = ImagePreprocess(**checkpoint['preprocessing'])
     loader = loader_factory(batch_size=args.batch_size, **common)
+    predictions = {"labels": [], "probs": []}
     result = {"split": args.split, "fold": checkpoint["config"]["fold"],
               "model_name": checkpoint.get('model_name'),
               "checkpoint_selection": checkpoint.get("selection_criterion", "minimum unweighted validation loss (legacy)"),
               "checkpoint_epoch": checkpoint["epoch"], "pretrained": checkpoint["pretrained"],
-              "metrics": run_epoch(model, loader, device),
+              "metrics": run_epoch(model, loader, device, prediction_sink=predictions),
               "confusion_matrix_order": "rows=true, columns=predicted; [retract, advance]"}
     # Same numbers every model reports, including AUROC, from P(advance).
-    labels, probs = [], []
-    with torch.inference_mode():
-        for batch in loader:
-            batch = move_batch(batch, device)
-            probs.extend(model(batch).softmax(1)[:, 1].cpu().tolist())
-            labels.extend(batch["label"].cpu().tolist())
-    result["shared_report"] = report(labels, probs)
+    result["shared_report"] = report(predictions["labels"], predictions["probs"])
     if args.latency:
         single = loader_factory(batch_size=1, **common)
         def synchronize():

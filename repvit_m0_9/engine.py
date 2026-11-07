@@ -22,7 +22,7 @@ def metrics_from_confusion(cm):
     }
 
 
-def run_epoch(model, loader, device, optimizer=None, class_weights=None):
+def run_epoch(model, loader, device, optimizer=None, class_weights=None, prediction_sink=None):
     if class_weights is not None:
         if optimizer is None:
             raise ValueError("Class weights apply to training only")
@@ -48,7 +48,12 @@ def run_epoch(model, loader, device, optimizer=None, class_weights=None):
                 objective.backward()
                 optimizer.step()
             labels = batch["label"].detach().cpu()
-            predictions = logits.detach().argmax(1).cpu()
+            probabilities = logits.detach().softmax(1)[:, 1].cpu()
+            # Match common.metrics: an exact 0.5 tie predicts advance.
+            predictions = (probabilities >= 0.5).long()
+            if prediction_sink is not None:
+                prediction_sink["labels"].extend(labels.tolist())
+                prediction_sink["probs"].extend(probabilities.tolist())
             cm += torch.bincount(2 * labels + predictions, minlength=4).reshape(2, 2)
             total_loss += loss.item() * len(labels)
             total_objective += objective.item() * len(labels)
