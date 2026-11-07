@@ -10,6 +10,9 @@ from data_loader import ImagePreprocess, make_dataloader
 from engine import move_batch, run_epoch
 from model import WireModel
 from history_baseline import HistoryModel, make_history_loader
+from common import protocol
+from common.data import load_split
+from common.latency import forward_latency
 from common.metrics import report  # data_loader.py puts the repository root on sys.path
 
 
@@ -28,13 +31,21 @@ def main():
     args = p.parse_args()
     if args.warmup < 1 or args.repeats < 1:
         p.error("warmup and repeats must be positive")
+    if Path(args.output).exists():
+        p.error("output exists; choose a new filename")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
     device = torch.device(args.device)
     if device.type == "cuda" and not torch.cuda.is_available():
         p.error("CUDA unavailable; run inside a GPU allocation")
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+    standardized = checkpoint["config"].get("protocol") == protocol.NAME
+    if standardized and (device.type != "cuda" or args.batch_size != protocol.BATCH_SIZE):
+        p.error("Standard baseline evaluation requires CUDA and batch size 8")
     numerical_only = checkpoint.get('model_name') == 'history_mlp'
     model = (HistoryModel(checkpoint['config']['hidden_dim'], checkpoint['config']['dropout'])
-             if numerical_only else WireModel(pretrained=False))
+             if numerical_only else WireModel(pretrained=False,
+                                history_order=checkpoint["config"].get("history_order", "time_then_depth")))
     model.load_state_dict(checkpoint["model"])
     model.to(device).eval()
     common = dict(root=args.data_root, fold=checkpoint["config"]["fold"], split=args.split,
@@ -52,7 +63,24 @@ def main():
               "confusion_matrix_order": "rows=true, columns=predicted; [retract, advance]"}
     # Same numbers every model reports, including AUROC, from P(advance).
     result["shared_report"] = report(predictions["labels"], predictions["probs"])
-    if args.latency:
+    if standardized:
+        _, supplied_split = load_split(checkpoint["config"]["fold"], args.data_root)
+        first = move_batch(next(iter(loader_factory(batch_size=1, **common))), device)
+        with torch.cuda.device(device):
+            timing = forward_latency(lambda: model(first))
+        result.update({
+            "protocol": protocol.NAME, "model": "repvit_m0_9", "variant": "baseline",
+            "case_indices": supplied_split[args.split], "labels": predictions["labels"],
+            "advance_probabilities": predictions["probs"],
+            "latency_samples_ms": timing["samples_ms"],
+            "forward_latency_mean_ms": timing["mean_ms"],
+            "forward_latency_median_ms": timing["median_ms"],
+            "latency_warmups": timing["warmup"], "latency_repetitions": timing["repeats"],
+            "latency_scope": protocol.LATENCY_SCOPE,
+            "gpu": torch.cuda.get_device_name(device), "image_size": protocol.IMAGE_SIZE,
+            "precision": protocol.PRECISION, **result["shared_report"],
+        })
+    elif args.latency:
         single = loader_factory(batch_size=1, **common)
         def synchronize():
             if device.type == "cuda":

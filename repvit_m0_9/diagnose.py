@@ -27,7 +27,9 @@ def main():
     torch.manual_seed(42)
     device = torch.device(args.device)
     saved = torch.load(args.checkpoint, map_location='cpu', weights_only=True) if args.checkpoint else None
-    model = WireModel(pretrained=saved is None).to(device)
+    model = WireModel(pretrained=saved is None,
+                      history_order=saved["config"].get("history_order", "time_then_depth")
+                      if saved else "time_then_depth").to(device)
     if saved:
         model.load_state_dict(saved['model'])
         preprocessing = saved['preprocessing']
@@ -53,7 +55,7 @@ def main():
     with torch.no_grad():
         images = torch.cat([batch['goal'].unsqueeze(1), batch['frames']], dim=1)
         features = model.encoder(images.flatten(0, 1)).reshape(8, -1)
-        history = torch.cat([batch['history_offsets_s'], batch['depth_relative_mm']], dim=1)
+        history = torch.cat([batch[key] for key in model.history_keys()], dim=1)
         history = (history - model.history_mean) / model.history_std
         inputs = torch.cat([features, history], dim=1)
         probabilities = model(batch).softmax(1)[:, 1]

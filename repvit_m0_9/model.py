@@ -10,11 +10,14 @@ MODEL_NAME = "repvit_m0_9.dist_450e_in1k"
 
 class WireModel(nn.Module):
     def __init__(self, pretrained=True, freeze_backbone=True, hidden_dim=128, dropout=0.3,
-                 finetune_last_stage=False):
+                 finetune_last_stage=False, history_order="time_then_depth"):
         super().__init__()
         if not 0 <= dropout < 1:
             raise ValueError("dropout must be between 0 (inclusive) and 1 (exclusive)")
         self.encoder = timm.create_model(MODEL_NAME, pretrained=pretrained, num_classes=0)
+        if history_order not in ("time_then_depth", "depth_then_time"):
+            raise ValueError("Invalid history order")
+        self.history_order = history_order
         self.finetune_last_stage = finetune_last_stage
         self.freeze_backbone = freeze_backbone and not finetune_last_stage
         self.encoder.requires_grad_(not self.freeze_backbone and not finetune_last_stage)
@@ -43,14 +46,19 @@ class WireModel(nn.Module):
         b, views, channels, height, width = images.shape
         with torch.no_grad() if self.freeze_backbone else nullcontext():
             features = self.encoder(images.reshape(b * views, channels, height, width))
-        history = torch.cat([batch["history_offsets_s"], batch["depth_relative_mm"]], dim=1)
+        keys = self.history_keys()
+        history = torch.cat([batch[key] for key in keys], dim=1)
         history = (history - self.history_mean) / self.history_std
         return self.classifier(torch.cat([features.reshape(b, -1), history], dim=1))
+
+    def history_keys(self):
+        return (("depth_relative_mm", "history_offsets_s") if self.history_order == "depth_then_time"
+                else ("history_offsets_s", "depth_relative_mm"))
 
     @torch.no_grad()
     def fit_history_normalization(self, training_cases):
         values = torch.tensor([
-            c["history_offsets_s"] + c["depth_relative_mm"] for c in training_cases
+            c[self.history_keys()[0]] + c[self.history_keys()[1]] for c in training_cases
         ], dtype=torch.float32, device=self.history_mean.device)
         if not len(values) or not torch.isfinite(values).all():
             raise ValueError("Training history must be nonempty and finite")

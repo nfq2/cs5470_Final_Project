@@ -1,3 +1,43 @@
+# Standardized midpoint baseline (current default)
+
+`train.py` now defaults to `common.protocol`: pretrained frozen RepViT-M0.9,
+frozen BatchNorm statistics, full 448×448 images with ImageNet normalization,
+seven image embeddings plus train-normalized depth-then-time history,
+128-unit ReLU head, dropout 0.3, Adam at 0.001 with zero weight decay,
+unweighted cross-entropy, batch 8, 20 epochs, seed 42, FP32 with TF32 off.
+Each fold starts independently from public pretrained weights. `best.pt` is
+selected by minimum validation loss (ties retain the earlier epoch).
+
+From the repository root, inside a GPU allocation with the environment activated:
+
+```bash
+export HF_HOME="$PSCRATCH/huggingface"
+export HF_HUB_OFFLINE=1
+export OMP_NUM_THREADS=2
+srun --ntasks=1 --gpus=1 python -m common.run_five_folds \
+  --model-dir repvit_m0_9 \
+  --data-root "$PSCRATCH/shorthorizon2" \
+  --output-root "$PSCRATCH/repvit_runs/standardized_$(date +%Y%m%d_%H%M%S)"
+```
+
+Allow enough GPU wall time for five sequential 20-epoch runs and evaluation.
+The common runner requires a new output directory and does not automatically
+resume interrupted runs. Completed fold checkpoints remain on disk.
+
+Evaluation of a baseline checkpoint automatically records the shared 20-warmup,
+100-forward batch-one latency benchmark on GPU, and saves ordered case indices,
+labels and probabilities for pooling. The runner creates `pooled_test.json` and
+`summary.csv` over all five test folds. Use the same GPU model as teammates.
+Keep per-case prediction JSONs, dataset imagery, and checkpoints on Perlmutter;
+use aggregate reports for sharing.
+
+Earlier 224×224 fine-tuning runs are separate experiments, not this baseline.
+Old checkpoints still load with their original time-then-depth history order.
+To use older custom training commands below, add `--experiment` and explicitly
+supply `--image-size 224` where applicable. Experiment mode retains AdamW with
+weight decay 0.0001. Standardized runs cannot enable fine-tuning, weighted loss,
+random initialization or warm starts.
+
 # RepViT-M0.9 — Nicole
 
 ## Short-horizon data loader

@@ -177,7 +177,8 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     saved = torch.load(args.checkpoint, map_location='cpu', weights_only=True)
     device = torch.device(args.device)
-    model = WireModel(pretrained=False).to(device)
+    model = WireModel(pretrained=False,
+                      history_order=saved["config"].get("history_order", "time_then_depth")).to(device)
     model.load_state_dict(saved['model'])
     model.eval()
     datasets = {split: ShortHorizonDataset(args.data_root, split, saved['config']['fold'],
