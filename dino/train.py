@@ -13,7 +13,7 @@ from pathlib import Path
 import torch
 from torch import nn
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common.data import load_split as load_data  # noqa: E402
 from common.metrics import report  # noqa: E402
 from head import build_head, case_history  # noqa: E402

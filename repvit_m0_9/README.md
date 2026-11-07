@@ -399,3 +399,19 @@ python evaluate.py --data-root "$PSCRATCH/shorthorizon2" \
 
 Do not evaluate test while selecting configurations. Any later latency comparison
 must use the same device; the numerical forward naturally excludes visual encoding.
+
+### Shared team loader and evaluation
+
+RepViT uses `common.data.load_split` and the shared image dataset, with a small
+adapter that separates `images[0]` into `goal` and `images[1:]` into `frames`.
+RepViT retains its deterministic resize/normalization and input validation.
+The numerical-history baseline uses the same split loader without opening images.
+
+`evaluate.py` computes the team's `common.metrics.report` (including AUROC) from
+probabilities collected during the same forward pass as loss and confusion matrix.
+Predictions now follow the shared threshold: P(advance) >= 0.5 means advance.
+Only exact ties differ from older RepViT argmax reports, which chose retract.
+Existing checkpoints remain compatible; no retraining is required to evaluate them.
+RepViT's optional latency remains its existing all-case measurement, rather than
+the shared helper's repeated single-input benchmark; do not compare those timing
+protocols directly. Use `shared_report` for classification comparisons.

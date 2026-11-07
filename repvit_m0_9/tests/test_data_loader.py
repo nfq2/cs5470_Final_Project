@@ -45,6 +45,18 @@ class DataLoaderTests(unittest.TestCase):
             self.assertAlmostEqual(frame.mean().item(), i * 30 / 255, places=5)
         torch.testing.assert_close(item["history_offsets_s"], torch.tensor([-5., -3., -2., -1.5, -.5, 0.]))
 
+    def test_shared_loader_matches_repvit_adapter(self):
+        from common.data import load_split, ShortHorizonDataset as SharedDataset
+        cases, split = load_split(7, self.root)
+        shared = SharedDataset(cases, split["validation"], self.transform, self.root)
+        adapted = ShortHorizonDataset(self.root, "validation", 7, self.transform)
+        for i in range(len(shared)):
+            expected, actual = shared[i], adapted[i]
+            torch.testing.assert_close(actual["goal"], expected["images"][0])
+            torch.testing.assert_close(actual["frames"], expected["images"][1:])
+            for key in ("label", "history_offsets_s", "depth_relative_mm"):
+                torch.testing.assert_close(actual[key], expected[key])
+
     def test_validation_keeps_order_and_partial_batch(self):
         loader = make_dataloader(self.root, "validation", fold=7, batch_size=3,
                                  transform=self.transform)

@@ -125,6 +125,21 @@ class ModelTests(unittest.TestCase):
         model(batch).sum().backward()
         self.assertTrue(any(p.grad is not None for p in model.encoder.parameters()))
 
+    def test_shared_evaluation_uses_same_predictions_including_ties(self):
+        from common.metrics import report
+        class FixedModel(torch.nn.Module):
+            def forward(self, batch):
+                return batch["logits"]
+        predictions = {"labels": [], "probs": []}
+        batch = {"logits": torch.tensor([[0., 0.], [2., 0.], [0., 2.]]),
+                 "label": torch.tensor([0, 0, 1])}
+        metrics = run_epoch(FixedModel(), [batch], torch.device("cpu"),
+                            prediction_sink=predictions)
+        shared = report(predictions["labels"], predictions["probs"])
+        self.assertEqual(metrics["confusion_matrix"], [[1, 1], [0, 1]])
+        self.assertAlmostEqual(metrics["accuracy"], shared["overall_accuracy"], places=6)
+        self.assertAlmostEqual(metrics["balanced_accuracy"], shared["balanced_accuracy"], places=6)
+
     def test_metrics(self):
         result = metrics_from_confusion(torch.tensor([[2, 1], [2, 5]]))
         self.assertAlmostEqual(result["accuracy"], .7, places=6)

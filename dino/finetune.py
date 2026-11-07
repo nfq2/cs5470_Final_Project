@@ -26,7 +26,7 @@ from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common.data import data_root, load_split  # noqa: E402
 from extract import MEAN, STD, build_backbone, tile  # noqa: E402
 from head import NUM_HISTORY, AttentionPool, case_history  # noqa: E402

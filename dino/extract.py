@@ -21,9 +21,9 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-# Use Saesha's loader so every model reads the same dataset copy and split. Appended,
-# not prepended, so this folder's train.py wins over resnet/train.py.
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+# Shared loader from common/ at the repository root. Appended,
+# not prepended, so this folder's train.py shadows nothing above it.
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common.data import data_root  # noqa: E402
 
 DATA_DIR = data_root()

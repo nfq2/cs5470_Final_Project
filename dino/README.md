@@ -36,7 +36,7 @@ python -c "import timm; timm.create_model('vit_small_patch14_dinov2.lvd142m', pr
 
 ```bash
 salloc --nodes 1 --qos shared_interactive --time 01:00:00 --constraint gpu --gpus 1 -c 32 --account m4999
-cd ~/cs5470_Final_Project/finalproject/dino
+cd ~/cs5470_Final_Project/dino
 module load pytorch/2.8.0 && export HF_HOME=$PSCRATCH/huggingface
 
 python extract.py --size 448                    # once per variant, a few minutes
