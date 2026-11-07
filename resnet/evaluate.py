@@ -10,6 +10,7 @@ from data import WireDataset, load_data
 from model import WireModel
 from common.latency import forward_latency  # data.py puts the repository root on sys.path
 from common.metrics import report
+from common.protocol import LATENCY_SCOPE
 
 
 if __name__ == "__main__":
@@ -49,13 +50,17 @@ if __name__ == "__main__":
             labels.extend(y.tolist())
             probs.extend(outputs.softmax(1)[:, 1].cpu().tolist())  # P(advance)
     # Shared report: overall, advance, retract and balanced accuracy, AUROC, always-advance.
-    results = {"model": "resnet18", "split": args.split, "fold": checkpoint["fold"],
+    results = {"protocol": checkpoint.get("config", {}).get("protocol", "legacy"),
+               "model": "resnet18", "variant": "baseline",
+               "split": args.split, "fold": checkpoint["fold"],
                "epoch": checkpoint["epoch"],
                "checkpoint_selection": checkpoint.get("config", {}).get(
                    "selection", "val_loss"),
                "dropout": dropout,
                "retract_weight": checkpoint.get("config", {}).get("retract_weight", 1.0),
                "finetune_layer4": finetune_layer4,
+               "case_indices": split[args.split], "labels": labels,
+               "advance_probabilities": probs,
                **report(labels, probs)}
 
     # Time one whole decision: seven images and their numeric history.
@@ -66,10 +71,10 @@ if __name__ == "__main__":
     latency = forward_latency(lambda: model(images, history))
     results["forward_latency_mean_ms"] = latency["mean_ms"]
     results["forward_latency_median_ms"] = latency["median_ms"]
-    results["latency_scope"] = ("Batch-one seven-image + history forward; excludes I/O, "
-                                "preprocessing, transfer and startup")
+    results["latency_scope"] = LATENCY_SCOPE
     results["latency_warmups"] = latency["warmup"]
     results["latency_repetitions"] = latency["repeats"]
+    results["latency_samples_ms"] = latency["samples_ms"]
     results["gpu"] = torch.cuda.get_device_name()
     results["image_size"] = checkpoint["image_size"]
     results["precision"] = "FP32, TF32 disabled"

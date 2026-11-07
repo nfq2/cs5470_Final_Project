@@ -1,5 +1,10 @@
 # ResNet-18 baseline
 
+The standardized four-architecture baseline is defined in
+[`../common/BASELINE_PROTOCOL.md`](../common/BASELINE_PROTOCOL.md). The defaults
+in this folder implement that protocol for ResNet-18. Run all five folds with
+the common runner; do not select the best fold.
+
 Four Python files. You allocate the GPU and run each step yourself.
 This replaces the previous larger starter package; it is a separate, simpler version.
 
@@ -68,10 +73,23 @@ python train.py --data-root "$PSCRATCH/finalproject/shorthorizon2" \
   --output-dir "$PSCRATCH/finalproject/resnet_results/fold0_baseline" --fold 0
 ```
 
-Settings are ordinary constants at the top of train.py: first provided fold
-(index 0), 448-pixel images, 20 epochs, batch size 8, learning rate 0.001.
-Coordinate split and preprocessing with your teammates. No random image split,
-augmentation, class weighting or mixed precision is used in this baseline.
+The command above is useful for one-fold debugging. For the standardized result,
+run from the repository root:
+
+```bash
+python -m common.run_five_folds \
+  --model-dir resnet \
+  --data-root "$PSCRATCH/finalproject/shorthorizon2" \
+  --output-root "$PSCRATCH/finalproject/standardized_results/resnet18"
+```
+
+This trains five independent checkpoints, evaluates each on its matching test
+group, and writes pooled metrics over all 416 cases.
+
+The standard settings come from `common/protocol.py`: 448-pixel images, 20
+epochs, batch size 8, learning rate 0.001, dropout 0.3, and seed 42. No random
+image split, augmentation, class weighting, backbone fine-tuning, or mixed
+precision is used in this baseline.
 
 Pass `--dropout 0.1` to test lower classifier dropout in a separate output
 directory. The checkpoint records the value and evaluation restores it.

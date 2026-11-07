@@ -8,6 +8,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 from common.data import load_all_folds, load_split  # noqa: E402
 from common.metrics import auroc, report  # noqa: E402
+from common.aggregate_folds import aggregate  # noqa: E402
+from common.protocol import NAME  # noqa: E402
 
 
 def write_dataset(root, splits, episodes=(0, 1, 2, 3, 4, 5)):
@@ -64,6 +66,39 @@ class MetricTests(unittest.TestCase):
 
     def test_auroc_counts_ties_as_half(self):
         self.assertAlmostEqual(auroc([1, 0], [0.5, 0.5]), 0.5)
+
+
+class AggregateTests(unittest.TestCase):
+    def test_five_fold_predictions_are_pooled(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            episodes = tuple(range(10))
+            splits = []
+            paths = []
+            for fold in range(5):
+                test = [2 * fold, 2 * fold + 1]
+                validation = [2 * ((fold + 1) % 5), 2 * ((fold + 1) % 5) + 1]
+                train = [i for i in range(10) if i not in test + validation]
+                splits.append({"fold": fold, "train": train,
+                               "validation": validation, "test": test})
+            write_dataset(root, splits, episodes=episodes)
+            for fold, split in enumerate(splits):
+                path = root / f"fold{fold}.json"
+                labels = [index % 2 for index in split["test"]]
+                path.write_text(json.dumps({
+                    "protocol": NAME, "model": "toy", "fold": fold,
+                    "split": "test", "case_indices": split["test"],
+                    "labels": labels,
+                    "advance_probabilities": [0.1 if label == 0 else 0.9
+                                               for label in labels],
+                    "latency_samples_ms": [fold + 1.0], "gpu": "toy-gpu",
+                    "image_size": 448, "precision": "FP32, TF32 disabled",
+                }))
+                paths.append(path)
+            result = aggregate(paths, root)
+            self.assertEqual(result["n"], 10)
+            self.assertEqual(result["overall_accuracy"], 1.0)
+            self.assertEqual(result["latency_measurements"], 5)
 
 
 if __name__ == "__main__":

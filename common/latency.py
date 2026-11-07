@@ -9,8 +9,8 @@ experiment is about precision.
 import statistics
 import time
 
-WARMUP = 20
-REPEATS = 100
+from common.protocol import LATENCY_REPEATS as REPEATS
+from common.protocol import LATENCY_WARMUP as WARMUP
 
 
 def forward_latency(forward, warmup=WARMUP, repeats=REPEATS):
@@ -27,4 +27,4 @@ def forward_latency(forward, warmup=WARMUP, repeats=REPEATS):
             torch.cuda.synchronize()
             times.append((time.perf_counter() - start) * 1000)
     return {"mean_ms": statistics.mean(times), "median_ms": statistics.median(times),
-            "warmup": warmup, "repeats": repeats}
+            "warmup": warmup, "repeats": repeats, "samples_ms": times}

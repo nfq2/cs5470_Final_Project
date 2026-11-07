@@ -11,28 +11,25 @@ from torch.utils.data import DataLoader
 from data import WireDataset, get_history, load_data
 from model import WireModel
 from common.metrics import report
-
-FOLD = 0
-IMAGE_SIZE = 448
-EPOCHS = 20
-BATCH_SIZE = 8
-LEARNING_RATE = 0.001
+from common.protocol import (BATCH_SIZE, CHECKPOINT_SELECTION, DROPOUT, EPOCHS,
+                             FOLDS, IMAGE_SIZE, LEARNING_RATE, NAME, NUM_WORKERS,
+                             OPTIMIZER, SEED, settings)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", required=True)
     parser.add_argument("--output-dir", required=True)
-    parser.add_argument("--fold", type=int, default=FOLD)
+    parser.add_argument("--fold", type=int, default=0)
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--image-size", type=int, default=IMAGE_SIZE)
-    parser.add_argument("--dropout", type=float, default=0.3)
+    parser.add_argument("--dropout", type=float, default=DROPOUT)
     parser.add_argument("--retract-weight", type=float, default=1.0)
     parser.add_argument("--finetune-layer4", action="store_true")
     parser.add_argument("--backbone-lr", type=float, default=1e-5)
     parser.add_argument("--selection", choices=["val_loss", "balanced_accuracy", "auroc"],
                         default="val_loss")
-    parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument("--num-workers", type=int, default=NUM_WORKERS)
     args = parser.parse_args()
     if args.epochs < 1 or args.num_workers < 0:
         parser.error("epochs must be positive and num-workers nonnegative")
@@ -47,7 +44,7 @@ if __name__ == "__main__":
         parser.error("output-dir already exists; choose a new run directory")
 
     device = torch.device("cuda")
-    torch.manual_seed(42)
+    torch.manual_seed(SEED)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
 
@@ -60,10 +57,18 @@ if __name__ == "__main__":
     assert {cases[i]["label"] for i in split["validation"]} == {0, 1}, "Validation needs both classes."
 
     output.mkdir(parents=True)
+    baseline = (args.fold in FOLDS and args.epochs == EPOCHS and
+                args.image_size == IMAGE_SIZE and
+                args.dropout == DROPOUT and args.retract_weight == 1.0 and
+                not args.finetune_layer4 and args.selection == "val_loss" and
+                args.num_workers == NUM_WORKERS)
     config = {**vars(args), "batch_size": BATCH_SIZE,
-              "learning_rate": LEARNING_RATE, "optimizer": "Adam", "seed": 42,
+              "learning_rate": LEARNING_RATE, "optimizer": OPTIMIZER, "seed": SEED,
               "backbone_frozen": not args.finetune_layer4, "model": "resnet18",
               "precision": "FP32; TF32 disabled",
+              "checkpoint_selection": CHECKPOINT_SELECTION,
+              "protocol": NAME if baseline else "custom_experiment",
+              "protocol_settings": settings(),
               "torch_version": str(torch.__version__)}
     (output / "config.json").write_text(json.dumps(config, indent=2) + "\n")
 

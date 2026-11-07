@@ -16,9 +16,13 @@ Keep the sensitive dataset on Perlmutter, outside this repository. See
 [DATASET.md](DATASET.md) for the dataset and
 [common/DATA_SETUP.md](common/DATA_SETUP.md) for getting a copy.
 
-## Shared data, metrics and latency (`common/`)
+## Shared baseline protocol (`common/`)
 
-All models take their cases and split from `common/`, so results are on the same cases.
+All four architectures should follow
+[the shared baseline protocol](common/BASELINE_PROTOCOL.md). It fixes training
+defaults, uses all five folds, pools all 416 held-out predictions, and produces
+one accuracy-versus-latency comparison. Each teammate adapts their own model
+folder to the documented interface.
 
 | File | Use |
 |---|---|
@@ -26,6 +30,10 @@ All models take their cases and split from `common/`, so results are on the same
 | [common/metrics.py](common/metrics.py) | `report(labels, probs)` |
 | [common/latency.py](common/latency.py) | `forward_latency(fn)` |
 | [common/check.py](common/check.py) | Checks the real dataset (prints counts only) |
+| [common/protocol.py](common/protocol.py) | Shared training and latency constants |
+| [common/run_five_folds.py](common/run_five_folds.py) | Trains/evaluates one model on folds 0–4 |
+| [common/aggregate_folds.py](common/aggregate_folds.py) | Pools the 416 held-out predictions |
+| [common/compare_results.py](common/compare_results.py) | Makes the final CSV and plot |
 
 ### Split
 
@@ -69,8 +77,5 @@ latency = forward_latency(lambda: model(images, history))
 
 Check on Perlmutter: `python common/check.py` and `python -m unittest discover common/tests`.
 
-### Not shared yet
-
-- RepViT uses its own latency protocol (10 warm-up calls, 3 timed per case).
-- ResNet and MobileNet run one fold at a time; nothing pools the five folds for them yet.
-- Checkpoint selection differs by model; state it when reporting.
+Older result files may use different settings or only fold 0. Label those as
+preliminary; do not mix them into the standardized four-architecture graph.
