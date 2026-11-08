@@ -29,6 +29,6 @@ The reported latency is a batch-one FP32 forward pass for seven images and the
 insertion-depth/time history. Inputs were already on the GPU, so data loading,
 preprocessing, CPU-to-GPU transfer, and startup are excluded.
 
-Check the `gpu` column before comparing latencies. MobileNet's standardized
-latency was measured on an A100-PCIE-40GB; ResNet and DINOv2's standardized
-latencies were measured on an A100-SXM4-40GB.
+The pooled baseline reports for MobileNet, ResNet, RepViT, and DINOv2 use
+an A100-SXM4-40GB. Use those matched measurements for the comparison. Check
+the `gpu` column before including results from other experiments.

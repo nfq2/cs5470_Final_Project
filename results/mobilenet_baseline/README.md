@@ -16,8 +16,9 @@ The pooled run achieved **58.2% accuracy**, **78.4% advance recall**,
 **24.8% retract recall**, **51.6% balanced accuracy**, and **0.4962 AUROC**.
 Always predicting advance achieved **62.3%** on the same cases.
 
-The pooled median was **8.13 ms** on an **NVIDIA A100-PCIE-40GB**, using
-batch-one FP32 forward timing. Inputs were already on the GPU. Use the pooled
-metrics for comparison; the earlier fold timings are from different hardware.
-ResNet and DINOv2's standardized timings in the shared table use an
-A100-SXM4-40GB, so they are not a matched hardware latency comparison.
+The matched rerun measured a pooled median of **4.34 ms** (mean **4.26 ms**)
+on an **NVIDIA A100-SXM4-40GB**, the same GPU model as the other standardized
+baselines. It used the same five checkpoints and produced the same test
+metrics. Timing is batch-one FP32 forward latency with inputs already on the
+GPU. The original **8.13 ms** median on the A100-PCIE-40GB and the earlier
+A100-SXM4-80GB fold timings are historical measurements.

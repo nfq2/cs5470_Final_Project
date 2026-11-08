@@ -17,10 +17,10 @@
   "balanced_accuracy": 0.5160957135479428,
   "auroc": 0.49620047709219683,
   "always_advance_accuracy": 0.6225961538461539,
-  "forward_latency_mean_ms": 8.04965485795401,
-  "forward_latency_median_ms": 8.132984512485564,
+  "forward_latency_mean_ms": 4.256397722288966,
+  "forward_latency_median_ms": 4.339723032899201,
   "latency_measurements": 500,
-  "gpu": "NVIDIA A100-PCIE-40GB",
+  "gpu": "NVIDIA A100-SXM4-40GB",
   "image_size": 448,
   "precision": "FP32, TF32 disabled"
 }

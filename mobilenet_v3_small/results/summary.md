@@ -24,10 +24,10 @@ fold, and the metrics were computed from all 416 predictions together.
 | Retract recall | 24.8% (39/157) |
 | Balanced accuracy | 51.6% |
 | Pooled AUROC | 0.4962 |
-| Median forward latency | 8.13 ms |
-| Mean forward latency | 8.05 ms |
+| Median forward latency | 4.34 ms |
+| Mean forward latency | 4.26 ms |
 | Timed forward passes | 500 |
-| GPU | NVIDIA A100-PCIE-40GB |
+| GPU | NVIDIA A100-SXM4-40GB |
 
 Use the pooled median for the standardized comparison when the other models
 were timed on the same GPU model and with the same timing scope.
@@ -44,16 +44,16 @@ were timed on the same GPU model and with the same timing scope.
 
 ## Latency setup
 
-The standardized run used one **NVIDIA A100-PCIE-40GB**, FP32 with TF32
+The matched standardized run used one **NVIDIA A100-SXM4-40GB**, FP32 with TF32
 disabled, batch size one decision, and 20 warm-ups and 100 synchronized
 timed forwards per fold. The median and mean above are computed over the
 500 timings together.
 
 Timing includes all seven image encodings and the classifier. It excludes loading, preprocessing, CPU-to-GPU transfers, and startup.
 
-The earlier **3.70–3.79 ms** range is from per-fold means measured on an
-**A100-SXM4-80GB**. Those measurements are separate from the standardized
-A100-PCIE timing and should not be used interchangeably.
+The earlier **8.13 ms** pooled median was measured on an **A100-PCIE-40GB**.
+The **3.70–3.79 ms** per-fold means in the table used an **A100-SXM4-80GB**.
+Use the matched 40 GB SXM4 measurement for the architecture comparison.
 
 ## Findings
 
