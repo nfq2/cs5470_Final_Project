@@ -1,5 +1,21 @@
 # Standardized midpoint baseline (current default)
 
+## Shared results on Perlmutter
+
+Shared handoff destination for Nicole's standardized five-fold run:
+
+```text
+/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656
+```
+
+Each directory `fold0` through `fold4` should contain `best.pt`,
+`validation.json`, and `test.json`. Both JSON files include `case_indices`,
+`labels`, and `advance_probabilities`. `best.pt` is selected by minimum
+validation loss within each fold. Copy completion and group access must be
+confirmed on Perlmutter; this path is the designated handoff destination.
+
+## Training and evaluation
+
 `train.py` now defaults to `common.protocol`: pretrained frozen RepViT-M0.9,
 frozen BatchNorm statistics, full 448×448 images with ImageNet normalization,
 seven image embeddings plus train-normalized depth-then-time history,
