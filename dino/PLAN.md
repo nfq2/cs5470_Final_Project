@@ -310,4 +310,9 @@ small VLM (seconds of latency, 56% best open-weight on the clinical benchmark).
 - Astra's 82% is on 512 *clinical* procedures (projectwaldo.ai), not this simulator set.
   Confirm with Jamal and state it on the poster.
 - Can error-analysis images go on the poster, or only descriptions? (Ask Jamal.)
-- Teammates' pooled 5-fold numbers for the comparison table.
+- Is the student set simulated, phantom, or clinical? DATASET.md does not say; the poster
+  should use whichever word Jamal confirms.
+- Teammates' pooled 5-fold numbers (Nov 8, results/summary.csv, all A100-SXM4-40GB): ResNet-18
+  62.3% / AUROC 0.486 / 6.15 ms; MobileNetV3-S 58.2% / 0.496 / 4.34 ms; RepViT-M0.9 62.3% /
+  0.515 / 10.75 ms; DINOv2-S 61.5% / 0.490 / 28.98 ms. All six pairwise logistic ensembles:
+  validation AUROC 0.55-0.60, test AUROC 0.49-0.52 (ensemble/results/comparison.csv). Answered.
