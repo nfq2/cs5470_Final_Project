@@ -25,6 +25,52 @@ python -m common.run_five_folds \
   --output-root "$PSCRATCH/finalproject/standardized_results/dinov2_small"
 ```
 
+## Checkpoints and predictions (ensemble handoff)
+
+The finished five-fold run is on Perlmutter, readable by the m4999 group:
+
+```
+/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/
+  fold0/ .. fold4/
+    best.pt          lowest-val-loss checkpoint for that fold (~88 MB each)
+    validation.json  predictions on the fold's validation split
+    test.json        predictions on the fold's test group
+    config.json      training settings (same as results/dino/standardized_baseline/foldN/)
+    training.csv     per-epoch train/val loss and val accuracies
+  pooled_test.json   the five test.json files pooled over all 416 cases
+  summary.csv        one row, same columns as results/summary.csv
+```
+
+Original copy: `$PSCRATCH/finalproject/standardized_results/dinov2_small` (ak2682).
+Nothing here goes into Git; the aggregate files are in `results/dino/standardized_baseline/`.
+
+`best.pt` is a dict with the same keys as the ResNet checkpoint: `weights` (full
+`state_dict`, frozen encoder included, so no download is needed), `fold`, `image_size`
+(448), `epoch`, `config`. Load it exactly like `collect_resnet` in `ensemble/evaluate.py`:
+
+```python
+from dino.baseline.data import WireDataset, load_data
+from dino.baseline.model import WireModel
+
+saved = torch.load(path, map_location="cpu", weights_only=True)
+model = WireModel(saved["image_size"], pretrained=False,
+                  dropout=saved["config"].get("dropout", 0.3)).to(device)
+model.load_state_dict(saved["weights"])
+model.eval()
+cases, split = load_data(data_root, saved["fold"])
+dataset = WireDataset(data_root, cases, split["validation"], saved["image_size"])
+# dataset[i] -> (images [7,3,448,448], history [12], label); model(images, history) -> logits [B,2]
+# P(advance) = logits.softmax(1)[:, 1]
+```
+
+`WireDataset` walks `split[...]` in order, so case order matches `resnet/` for the same
+fold. Needs `timm` (`pip install --user timm`); the timm model is built with
+`pretrained=False`, so nothing is fetched from the hub.
+
+`validation.json` and `test.json` already contain `case_indices`, `labels` and
+`advance_probabilities` (P(advance), 0.5 threshold) in that same order, plus the
+protocol metrics, so a late-fusion ensemble can use them without running the model.
+
 The experiments in the parent folder (`dino/`) are separate from this baseline: different
 head, fixed epoch count, cached features, probes, tiles and fine-tuning. See
 [`../PLAN.md`](../PLAN.md).

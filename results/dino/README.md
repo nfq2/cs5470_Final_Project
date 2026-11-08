@@ -8,6 +8,8 @@ the five folds unless marked fold 0.
 `midpoint_baseline_v1` via `common/run_five_folds.py` on `dino/baseline`: frozen DINOv2-S
 (ViT-S/14, CLS token per image), protocol classifier, lowest validation loss per fold.
 `pooled_test.json` and `summary.csv` are the files for the four-architecture plot.
+Checkpoints and per-fold prediction files are on Perlmutter; location, format and a
+loader snippet are in [`dino/baseline/README.md`](../../dino/baseline/README.md).
 
 | Split | n | Accuracy | Advance | Retract | Balanced | AUROC | Always-advance | Latency (median) |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
