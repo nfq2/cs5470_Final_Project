@@ -1,0 +1,287 @@
+{
+  "protocol": "midpoint_baseline_v1_pairwise_logistic_v1",
+  "models": [
+    "mobilenet",
+    "dino"
+  ],
+  "features": "clipped log-odds of P(advance) from both models",
+  "training": "class-balanced logistic regression; five-way stratified OOF within each outer-fold validation set",
+  "threshold_selection": "one threshold maximizing pooled OOF validation balanced accuracy; ties use overall accuracy then proximity to 0.5",
+  "decision_threshold": 0.5033365135562106,
+  "validation_oof": {
+    "n": 352,
+    "overall_accuracy": 0.5909090909090909,
+    "advance_accuracy": 0.5404040404040404,
+    "retract_accuracy": 0.6558441558441559,
+    "balanced_accuracy": 0.5981240981240982,
+    "auroc": 0.5913026367571822,
+    "always_advance_accuracy": 0.5625
+  },
+  "validation_folds": [
+    {
+      "fold": 0,
+      "n": 80,
+      "overall_accuracy": 0.625,
+      "advance_accuracy": 0.5217391304347826,
+      "retract_accuracy": 0.7647058823529411,
+      "balanced_accuracy": 0.6432225063938619,
+      "auroc": 0.6329923273657289,
+      "always_advance_accuracy": 0.575
+    },
+    {
+      "fold": 1,
+      "n": 73,
+      "overall_accuracy": 0.6027397260273972,
+      "advance_accuracy": 0.6153846153846154,
+      "retract_accuracy": 0.5882352941176471,
+      "balanced_accuracy": 0.6018099547511313,
+      "auroc": 0.5203619909502263,
+      "always_advance_accuracy": 0.5342465753424658
+    },
+    {
+      "fold": 2,
+      "n": 75,
+      "overall_accuracy": 0.5733333333333334,
+      "advance_accuracy": 0.5,
+      "retract_accuracy": 0.6896551724137931,
+      "balanced_accuracy": 0.5948275862068966,
+      "auroc": 0.5787106446776612,
+      "always_advance_accuracy": 0.6133333333333333
+    },
+    {
+      "fold": 3,
+      "n": 72,
+      "overall_accuracy": 0.5416666666666666,
+      "advance_accuracy": 0.5128205128205128,
+      "retract_accuracy": 0.5757575757575757,
+      "balanced_accuracy": 0.5442890442890442,
+      "auroc": 0.5734265734265734,
+      "always_advance_accuracy": 0.5416666666666666
+    },
+    {
+      "fold": 4,
+      "n": 52,
+      "overall_accuracy": 0.6153846153846154,
+      "advance_accuracy": 0.5714285714285714,
+      "retract_accuracy": 0.6666666666666667,
+      "balanced_accuracy": 0.6190476190476191,
+      "auroc": 0.59375,
+      "always_advance_accuracy": 0.5384615384615384
+    }
+  ],
+  "validation_sources": [
+    {
+      "fold": 0,
+      "mobilenet": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/mobilenet_v3_small/fold0/validation.json",
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold0/validation.json"
+    },
+    {
+      "fold": 1,
+      "mobilenet": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/mobilenet_v3_small/fold1/validation.json",
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold1/validation.json"
+    },
+    {
+      "fold": 2,
+      "mobilenet": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/mobilenet_v3_small/fold2/validation.json",
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold2/validation.json"
+    },
+    {
+      "fold": 3,
+      "mobilenet": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/mobilenet_v3_small/fold3/validation.json",
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold3/validation.json"
+    },
+    {
+      "fold": 4,
+      "mobilenet": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/mobilenet_v3_small/fold4/validation.json",
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold4/validation.json"
+    }
+  ],
+  "test_status": "exploratory: all currently available pairs evaluated before all six candidates were available; do not use test metrics for final selection",
+  "latency_status": "complete",
+  "pooled_test": {
+    "n": 416,
+    "overall_accuracy": 0.5600961538461539,
+    "advance_accuracy": 0.6602316602316602,
+    "retract_accuracy": 0.39490445859872614,
+    "balanced_accuracy": 0.5275680594151932,
+    "auroc": 0.5164154145045865,
+    "always_advance_accuracy": 0.6225961538461539
+  },
+  "test_folds": [
+    {
+      "fold": 0,
+      "n": 69,
+      "overall_accuracy": 0.6376811594202898,
+      "advance_accuracy": 0.8372093023255814,
+      "retract_accuracy": 0.3076923076923077,
+      "balanced_accuracy": 0.5724508050089445,
+      "auroc": 0.4991055456171735,
+      "always_advance_accuracy": 0.6231884057971014
+    },
+    {
+      "fold": 1,
+      "n": 72,
+      "overall_accuracy": 0.5416666666666666,
+      "advance_accuracy": 0.7317073170731707,
+      "retract_accuracy": 0.29032258064516125,
+      "balanced_accuracy": 0.511014948859166,
+      "auroc": 0.46498819826907944,
+      "always_advance_accuracy": 0.5694444444444444
+    },
+    {
+      "fold": 2,
+      "n": 71,
+      "overall_accuracy": 0.5211267605633803,
+      "advance_accuracy": 0.6136363636363636,
+      "retract_accuracy": 0.37037037037037035,
+      "balanced_accuracy": 0.492003367003367,
+      "auroc": 0.48063973063973064,
+      "always_advance_accuracy": 0.6197183098591549
+    },
+    {
+      "fold": 3,
+      "n": 81,
+      "overall_accuracy": 0.5061728395061729,
+      "advance_accuracy": 0.5,
+      "retract_accuracy": 0.5161290322580645,
+      "balanced_accuracy": 0.5080645161290323,
+      "auroc": 0.44451612903225807,
+      "always_advance_accuracy": 0.6172839506172839
+    },
+    {
+      "fold": 4,
+      "n": 123,
+      "overall_accuracy": 0.5853658536585366,
+      "advance_accuracy": 0.654320987654321,
+      "retract_accuracy": 0.45238095238095233,
+      "balanced_accuracy": 0.5533509700176367,
+      "auroc": 0.5111699000587889,
+      "always_advance_accuracy": 0.6585365853658537
+    }
+  ],
+  "fold_stackers": [
+    {
+      "fold": 0,
+      "standardized_weights": [
+        0.1528854807265011,
+        0.5678123619743497
+      ],
+      "bias": 0.03933848433726279,
+      "feature_mean": [
+        0.19795720611263676,
+        0.3952823510013595
+      ],
+      "feature_std": [
+        0.2512314065836911,
+        0.12414711969813691
+      ]
+    },
+    {
+      "fold": 1,
+      "standardized_weights": [
+        -0.285931252267187,
+        0.2925567976449698
+      ],
+      "bias": 0.0019705340463162103,
+      "feature_mean": [
+        0.1722997370701072,
+        0.3105169877530456
+      ],
+      "feature_std": [
+        0.15826517299654363,
+        0.16432890032570407
+      ]
+    },
+    {
+      "fold": 2,
+      "standardized_weights": [
+        0.3724687510786815,
+        -0.14957603355813842
+      ],
+      "bias": 0.015815312370381262,
+      "feature_mean": [
+        0.5307811405794848,
+        0.3716557819247304
+      ],
+      "feature_std": [
+        0.13661132216740737,
+        0.16390088981858322
+      ]
+    },
+    {
+      "fold": 3,
+      "standardized_weights": [
+        0.29455352832381243,
+        0.09447317115054614
+      ],
+      "bias": 0.0064820096827707206,
+      "feature_mean": [
+        0.12913660015595846,
+        0.18869391316895925
+      ],
+      "feature_std": [
+        0.31817840077538617,
+        0.18182349720946772
+      ]
+    },
+    {
+      "fold": 4,
+      "standardized_weights": [
+        0.5949056899417697,
+        -0.21795032261544187
+      ],
+      "bias": 0.0129719291399739,
+      "feature_mean": [
+        0.007549024223320192,
+        0.21168707707559298
+      ],
+      "feature_std": [
+        0.1942490932070589,
+        0.15002987834670573
+      ]
+    }
+  ],
+  "ensemble_forward_latency_mean_ms": 32.61743505834602,
+  "ensemble_forward_latency_median_ms": 32.60074241552502,
+  "latency_measurements": 500,
+  "latency_folds": [
+    {
+      "fold": 0,
+      "mean_ms": 32.624549618922174,
+      "median_ms": 32.61117252986878,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 1,
+      "mean_ms": 32.61735345120542,
+      "median_ms": 32.591168594080955,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 2,
+      "mean_ms": 32.62778618838638,
+      "median_ms": 32.60533598950133,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 3,
+      "mean_ms": 32.59696921217255,
+      "median_ms": 32.592881994787604,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 4,
+      "mean_ms": 32.620516821043566,
+      "median_ms": 32.605336513370275,
+      "warmup": 20,
+      "repeats": 100
+    }
+  ],
+  "latency_scope": "sequential batch-one forwards of both models plus logistic stacker; GPU-resident inputs; excludes I/O, preprocessing and transfer",
+  "latency_precision": "FP32; TF32 disabled",
+  "gpu": "NVIDIA A100-SXM4-80GB"
+}

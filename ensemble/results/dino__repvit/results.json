@@ -1,0 +1,287 @@
+{
+  "protocol": "midpoint_baseline_v1_pairwise_logistic_v1",
+  "models": [
+    "dino",
+    "repvit"
+  ],
+  "features": "clipped log-odds of P(advance) from both models",
+  "training": "class-balanced logistic regression; five-way stratified OOF within each outer-fold validation set",
+  "threshold_selection": "one threshold maximizing pooled OOF validation balanced accuracy; ties use overall accuracy then proximity to 0.5",
+  "decision_threshold": 0.4885220798948642,
+  "validation_oof": {
+    "n": 352,
+    "overall_accuracy": 0.5596590909090909,
+    "advance_accuracy": 0.6161616161616161,
+    "retract_accuracy": 0.487012987012987,
+    "balanced_accuracy": 0.5515873015873016,
+    "auroc": 0.5484389348025712,
+    "always_advance_accuracy": 0.5625
+  },
+  "validation_folds": [
+    {
+      "fold": 0,
+      "n": 80,
+      "overall_accuracy": 0.5875,
+      "advance_accuracy": 0.5,
+      "retract_accuracy": 0.7058823529411764,
+      "balanced_accuracy": 0.6029411764705882,
+      "auroc": 0.6234015345268542,
+      "always_advance_accuracy": 0.575
+    },
+    {
+      "fold": 1,
+      "n": 73,
+      "overall_accuracy": 0.5753424657534246,
+      "advance_accuracy": 0.5897435897435898,
+      "retract_accuracy": 0.5588235294117647,
+      "balanced_accuracy": 0.5742835595776772,
+      "auroc": 0.5497737556561086,
+      "always_advance_accuracy": 0.5342465753424658
+    },
+    {
+      "fold": 2,
+      "n": 75,
+      "overall_accuracy": 0.6,
+      "advance_accuracy": 0.9130434782608695,
+      "retract_accuracy": 0.10344827586206895,
+      "balanced_accuracy": 0.5082458770614693,
+      "auroc": 0.45577211394302847,
+      "always_advance_accuracy": 0.6133333333333333
+    },
+    {
+      "fold": 3,
+      "n": 72,
+      "overall_accuracy": 0.5694444444444444,
+      "advance_accuracy": 0.5897435897435898,
+      "retract_accuracy": 0.5454545454545454,
+      "balanced_accuracy": 0.5675990675990676,
+      "auroc": 0.5508935508935509,
+      "always_advance_accuracy": 0.5416666666666666
+    },
+    {
+      "fold": 4,
+      "n": 52,
+      "overall_accuracy": 0.4230769230769231,
+      "advance_accuracy": 0.39285714285714285,
+      "retract_accuracy": 0.45833333333333337,
+      "balanced_accuracy": 0.42559523809523814,
+      "auroc": 0.4226190476190476,
+      "always_advance_accuracy": 0.5384615384615384
+    }
+  ],
+  "validation_sources": [
+    {
+      "fold": 0,
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold0/validation.json",
+      "repvit": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656/fold0/validation.json"
+    },
+    {
+      "fold": 1,
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold1/validation.json",
+      "repvit": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656/fold1/validation.json"
+    },
+    {
+      "fold": 2,
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold2/validation.json",
+      "repvit": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656/fold2/validation.json"
+    },
+    {
+      "fold": 3,
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold3/validation.json",
+      "repvit": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656/fold3/validation.json"
+    },
+    {
+      "fold": 4,
+      "dino": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/dinov2_small/fold4/validation.json",
+      "repvit": "/global/cfs/cdirs/m4999/waldo_shared/standardized_results/repvit_m0_9_nicoleq_20261107_144656/fold4/validation.json"
+    }
+  ],
+  "test_status": "exploratory: all currently available pairs evaluated before all six candidates were available; do not use test metrics for final selection",
+  "latency_status": "complete",
+  "pooled_test": {
+    "n": 416,
+    "overall_accuracy": 0.5600961538461539,
+    "advance_accuracy": 0.6756756756756757,
+    "retract_accuracy": 0.3694267515923567,
+    "balanced_accuracy": 0.5225512136340162,
+    "auroc": 0.510390281090918,
+    "always_advance_accuracy": 0.6225961538461539
+  },
+  "test_folds": [
+    {
+      "fold": 0,
+      "n": 69,
+      "overall_accuracy": 0.6231884057971014,
+      "advance_accuracy": 0.7441860465116279,
+      "retract_accuracy": 0.42307692307692313,
+      "balanced_accuracy": 0.5836314847942755,
+      "auroc": 0.535778175313059,
+      "always_advance_accuracy": 0.6231884057971014
+    },
+    {
+      "fold": 1,
+      "n": 72,
+      "overall_accuracy": 0.5555555555555556,
+      "advance_accuracy": 0.6829268292682927,
+      "retract_accuracy": 0.3870967741935484,
+      "balanced_accuracy": 0.5350118017309206,
+      "auroc": 0.5413060582218725,
+      "always_advance_accuracy": 0.5694444444444444
+    },
+    {
+      "fold": 2,
+      "n": 71,
+      "overall_accuracy": 0.6056338028169014,
+      "advance_accuracy": 0.75,
+      "retract_accuracy": 0.37037037037037035,
+      "balanced_accuracy": 0.5601851851851851,
+      "auroc": 0.5202020202020202,
+      "always_advance_accuracy": 0.6197183098591549
+    },
+    {
+      "fold": 3,
+      "n": 81,
+      "overall_accuracy": 0.5061728395061729,
+      "advance_accuracy": 0.56,
+      "retract_accuracy": 0.4193548387096774,
+      "balanced_accuracy": 0.4896774193548387,
+      "auroc": 0.4470967741935484,
+      "always_advance_accuracy": 0.6172839506172839
+    },
+    {
+      "fold": 4,
+      "n": 123,
+      "overall_accuracy": 0.5365853658536586,
+      "advance_accuracy": 0.6666666666666666,
+      "retract_accuracy": 0.2857142857142857,
+      "balanced_accuracy": 0.47619047619047616,
+      "auroc": 0.4764844209288654,
+      "always_advance_accuracy": 0.6585365853658537
+    }
+  ],
+  "fold_stackers": [
+    {
+      "fold": 0,
+      "standardized_weights": [
+        0.5936002267457808,
+        0.027782035220442935
+      ],
+      "bias": 0.03786520039146448,
+      "feature_mean": [
+        0.3952823510013595,
+        0.2349136724263953
+      ],
+      "feature_std": [
+        0.12414711969813691,
+        0.048020169230184366
+      ]
+    },
+    {
+      "fold": 1,
+      "standardized_weights": [
+        -0.21714440857867043,
+        0.43457074326011286
+      ],
+      "bias": 0.00331139468015688,
+      "feature_mean": [
+        0.3105169877530456,
+        0.08463165212818982
+      ],
+      "feature_std": [
+        0.16432890032570407,
+        0.005829493834779284
+      ]
+    },
+    {
+      "fold": 2,
+      "standardized_weights": [
+        -0.053474270326008794,
+        0.0
+      ],
+      "bias": 0.0003266606740768445,
+      "feature_mean": [
+        0.3716557819247304,
+        0.3470355300325246
+      ],
+      "feature_std": [
+        0.16390088981858322,
+        1e-08
+      ]
+    },
+    {
+      "fold": 3,
+      "standardized_weights": [
+        0.15210435399552596,
+        0.19726472809833637
+      ],
+      "bias": 0.004461290692649482,
+      "feature_mean": [
+        0.18869391316895925,
+        0.19859336001249367
+      ],
+      "feature_std": [
+        0.18182349720946772,
+        0.05075598577081198
+      ]
+    },
+    {
+      "fold": 4,
+      "standardized_weights": [
+        0.19964104486596695,
+        -0.07325072040553753
+      ],
+      "bias": 0.0015867362318946617,
+      "feature_mean": [
+        0.21168707707559298,
+        0.14282361595143717
+      ],
+      "feature_std": [
+        0.15002987834670573,
+        0.012986918702035529
+      ]
+    }
+  ],
+  "ensemble_forward_latency_mean_ms": 37.31238873838447,
+  "ensemble_forward_latency_median_ms": 37.30947547592223,
+  "latency_measurements": 500,
+  "latency_folds": [
+    {
+      "fold": 0,
+      "mean_ms": 37.332144007086754,
+      "median_ms": 37.32746001332998,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 1,
+      "mean_ms": 37.33314815792255,
+      "median_ms": 37.33329207170755,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 2,
+      "mean_ms": 37.30575501918793,
+      "median_ms": 37.301535019651055,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 3,
+      "mean_ms": 37.29485114221461,
+      "median_ms": 37.294561974704266,
+      "warmup": 20,
+      "repeats": 100
+    },
+    {
+      "fold": 4,
+      "mean_ms": 37.29604536551051,
+      "median_ms": 37.2938914806582,
+      "warmup": 20,
+      "repeats": 100
+    }
+  ],
+  "latency_scope": "sequential batch-one forwards of both models plus logistic stacker; GPU-resident inputs; excludes I/O, preprocessing and transfer",
+  "latency_precision": "FP32; TF32 disabled",
+  "gpu": "NVIDIA A100-SXM4-80GB"
+}

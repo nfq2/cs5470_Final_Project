@@ -7,6 +7,10 @@ architecture using the same columns. Accuracy values are fractions (for example,
 Each model may also have a subfolder containing its raw evaluation output and
 training history. Do not add datasets or large model checkpoints to Git.
 
+Pairwise logistic-stacking results live in `../ensemble/results/`. Its comparison
+remains interim until all four architectures have supplied the shared artifacts
+needed to evaluate all six pairs.
+
 The completed standardized ResNet baseline is in
 [`resnet_baseline/`](resnet_baseline/). Its `summary.csv` is ready for the
 four-architecture comparison, and `training_history.csv` contains all epoch-level

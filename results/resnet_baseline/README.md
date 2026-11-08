@@ -30,6 +30,12 @@ result in JSON, and `config.json` records the standardized settings.
 and validation accuracies for all five folds; use its `fold` column to plot each
 curve separately or aggregate across folds.
 
+For ensemble work, see the shared
+[`common/ENSEMBLE_HANDOFF.md`](../../common/ENSEMBLE_HANDOFF.md) and this folder's
+`ensemble_artifacts.csv`. They describe and verify the case-level predictions
+and checkpoints kept in scratch; raw case-level files are intentionally not
+committed.
+
 Latency comprises 500 synchronized measurements: 100 from each fold on an
 NVIDIA A100-SXM4-40GB. It is a batch-one forward over seven images plus numeric
 history with inputs already on the GPU; I/O, preprocessing, transfer, and startup

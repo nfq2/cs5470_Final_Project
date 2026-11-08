@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="600" viewBox="0 0 1800 600">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#333333"/>
+    </marker>
+    <style>
+      .label { font-family: Arial, Helvetica, sans-serif; font-weight: 700; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-weight: 500; }
+    </style>
+  </defs>
+  <rect width="1800" height="600" fill="#ffffff"/>
+
+  <rect x="55" y="85" width="300" height="135" rx="24" fill="#4f7294"/>
+  <text x="205" y="165" text-anchor="middle" class="label" font-size="48" fill="#ffffff">Model A</text>
+
+  <rect x="55" y="380" width="300" height="135" rx="24" fill="#4f7294"/>
+  <text x="205" y="460" text-anchor="middle" class="label" font-size="48" fill="#ffffff">Model B</text>
+
+  <path d="M355 153 C500 153, 500 245, 650 265" fill="none" stroke="#333333" stroke-width="8" marker-end="url(#arrow)"/>
+  <path d="M355 448 C500 448, 500 355, 650 335" fill="none" stroke="#333333" stroke-width="8" marker-end="url(#arrow)"/>
+  <text x="490" y="132" text-anchor="middle" class="small" font-size="31" fill="#555555">P(advance)</text>
+  <text x="490" y="490" text-anchor="middle" class="small" font-size="31" fill="#555555">P(advance)</text>
+
+  <rect x="665" y="190" width="445" height="220" rx="28" fill="#ffffff" stroke="#a00000" stroke-width="9"/>
+  <text x="888" y="320" text-anchor="middle" class="label" font-size="45" fill="#a00000">Logistic Regression</text>
+
+  <line x1="1110" y1="300" x2="1228" y2="300" stroke="#333333" stroke-width="8" marker-end="url(#arrow)"/>
+
+  <rect x="1245" y="225" width="250" height="150" rx="24" fill="#a00000"/>
+  <text x="1370" y="315" text-anchor="middle" class="label" font-size="38" fill="#ffffff">Threshold</text>
+
+  <line x1="1495" y1="300" x2="1570" y2="300" stroke="#333333" stroke-width="8" marker-end="url(#arrow)"/>
+
+  <rect x="1585" y="225" width="185" height="150" rx="24" fill="#4f7294"/>
+  <text x="1677" y="287" text-anchor="middle" class="label" font-size="35" fill="#ffffff">Final</text>
+  <text x="1677" y="337" text-anchor="middle" class="label" font-size="35" fill="#ffffff">Decision</text>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1450" viewBox="0 0 1500 1450">
+  <style>
+    .font { font-family: Arial, Helvetica, sans-serif; }
+    .head { font-family: Arial, Helvetica, sans-serif; font-weight: 700; fill: #222222; }
+    .value { font-family: Arial, Helvetica, sans-serif; font-weight: 700; }
+  </style>
+  <rect width="1500" height="1450" fill="#ffffff"/>
+  <text x="800" y="78" text-anchor="middle" class="head" font-size="50">Accuracy (%)</text>
+
+  <!-- Column labels -->
+  <text x="425" y="170" text-anchor="middle" class="head" font-size="35">ResNet</text>
+  <text x="675" y="170" text-anchor="middle" class="head" font-size="35">MobileNet</text>
+  <text x="925" y="170" text-anchor="middle" class="head" font-size="35">DINO</text>
+  <text x="1175" y="170" text-anchor="middle" class="head" font-size="35">RepViT</text>
+
+  <!-- Row labels -->
+  <text x="270" y="345" text-anchor="end" class="head" font-size="35">ResNet</text>
+  <text x="270" y="595" text-anchor="end" class="head" font-size="35">MobileNet</text>
+  <text x="270" y="845" text-anchor="end" class="head" font-size="35">DINO</text>
+  <text x="270" y="1095" text-anchor="end" class="head" font-size="35">RepViT</text>
+
+  <!-- Row 1 -->
+  <rect x="300" y="210" width="250" height="250" fill="#4f7294" stroke="#a00000" stroke-width="8"/>
+  <text x="425" y="350" text-anchor="middle" class="value" font-size="55" fill="#ffffff">62.3</text>
+  <rect x="550" y="210" width="250" height="250" fill="#b2c1cf" stroke="#ffffff" stroke-width="5"/>
+  <text x="675" y="350" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">54.8</text>
+  <rect x="800" y="210" width="250" height="250" fill="#88a2b9" stroke="#ffffff" stroke-width="5"/>
+  <text x="925" y="350" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">57.2</text>
+  <rect x="1050" y="210" width="250" height="250" fill="#a5b7c7" stroke="#ffffff" stroke-width="5"/>
+  <text x="1175" y="350" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">55.5</text>
+
+  <!-- Row 2 -->
+  <rect x="300" y="460" width="250" height="250" fill="#b2c1cf" stroke="#ffffff" stroke-width="5"/>
+  <text x="425" y="600" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">54.8</text>
+  <rect x="550" y="460" width="250" height="250" fill="#7895af" stroke="#a00000" stroke-width="8"/>
+  <text x="675" y="600" text-anchor="middle" class="value" font-size="55" fill="#ffffff">58.2</text>
+  <rect x="800" y="460" width="250" height="250" fill="#98adbf" stroke="#ffffff" stroke-width="5"/>
+  <text x="925" y="600" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">56.0</text>
+  <rect x="1050" y="460" width="250" height="250" fill="#d8e0e7" stroke="#ffffff" stroke-width="5"/>
+  <text x="1175" y="600" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">51.9</text>
+
+  <!-- Row 3 -->
+  <rect x="300" y="710" width="250" height="250" fill="#88a2b9" stroke="#ffffff" stroke-width="5"/>
+  <text x="425" y="850" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">57.2</text>
+  <rect x="550" y="710" width="250" height="250" fill="#98adbf" stroke="#ffffff" stroke-width="5"/>
+  <text x="675" y="850" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">56.0</text>
+  <rect x="800" y="710" width="250" height="250" fill="#587b9c" stroke="#a00000" stroke-width="8"/>
+  <text x="925" y="850" text-anchor="middle" class="value" font-size="55" fill="#ffffff">61.5</text>
+  <rect x="1050" y="710" width="250" height="250" fill="#98adbf" stroke="#ffffff" stroke-width="5"/>
+  <text x="1175" y="850" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">56.0</text>
+
+  <!-- Row 4 -->
+  <rect x="300" y="960" width="250" height="250" fill="#a5b7c7" stroke="#ffffff" stroke-width="5"/>
+  <text x="425" y="1100" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">55.5</text>
+  <rect x="550" y="960" width="250" height="250" fill="#d8e0e7" stroke="#ffffff" stroke-width="5"/>
+  <text x="675" y="1100" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">51.9</text>
+  <rect x="800" y="960" width="250" height="250" fill="#98adbf" stroke="#ffffff" stroke-width="5"/>
+  <text x="925" y="1100" text-anchor="middle" class="value" font-size="55" fill="#2a2a2a">56.0</text>
+  <rect x="1050" y="960" width="250" height="250" fill="#4f7294" stroke="#a00000" stroke-width="8"/>
+  <text x="1175" y="1100" text-anchor="middle" class="value" font-size="55" fill="#ffffff">62.3</text>
+
+  <text x="800" y="1290" text-anchor="middle" class="font" font-size="31" fill="#444444">Diagonal: individual model   •   Off-diagonal: pairwise ensemble</text>
+  <line x1="325" y1="1350" x2="485" y2="1350" stroke="#a00000" stroke-width="7" stroke-dasharray="18 12"/>
+  <text x="515" y="1362" class="head" font-size="34" fill="#a00000">Always advance: 62.3%</text>
+</svg>

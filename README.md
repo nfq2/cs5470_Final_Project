@@ -37,6 +37,7 @@ folder to the documented interface.
 | [common/run_five_folds.py](common/run_five_folds.py) | Trains/evaluates one model on folds 0–4 |
 | [common/aggregate_folds.py](common/aggregate_folds.py) | Pools the 416 held-out predictions |
 | [common/compare_results.py](common/compare_results.py) | Makes the final CSV and plot |
+| [common/ENSEMBLE_HANDOFF.md](common/ENSEMBLE_HANDOFF.md) | Artifacts required for pairwise stacking and live latency |
 
 ### Split
 
