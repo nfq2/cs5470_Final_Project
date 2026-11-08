@@ -307,11 +307,12 @@ small VLM (seconds of latency, 56% best open-weight on the clinical benchmark).
 
 ## Open questions
 
-- Astra's 82% is on 512 *clinical* procedures (projectwaldo.ai), not this simulator set.
-  Confirm with Jamal and state it on the poster.
+- Project brief (Nov 8): data is an expert driving a CorPath GRX robot on a Mentice patient
+  simulator, 512 procedures / 11.1 h; the short-horizon task comes from the private
+  telesurgery-bench repo. Hosted VLMs on that task: GPT-6 Astra 82% at 3-4 s per decision,
+  GPT-5.6 65%, best open-weight 56% (~1 min). Whether our 416-case handoff is the same
+  evaluation set as those numbers is still to confirm with Jamal.
 - Can error-analysis images go on the poster, or only descriptions? (Ask Jamal.)
-- Is the student set simulated, phantom, or clinical? DATASET.md does not say; the poster
-  should use whichever word Jamal confirms.
 - Teammates' pooled 5-fold numbers (Nov 8, results/summary.csv, all A100-SXM4-40GB): ResNet-18
   62.3% / AUROC 0.486 / 6.15 ms; MobileNetV3-S 58.2% / 0.496 / 4.34 ms; RepViT-M0.9 62.3% /
   0.515 / 10.75 ms; DINOv2-S 61.5% / 0.490 / 28.98 ms. All six pairwise logistic ensembles:
