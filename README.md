@@ -6,7 +6,11 @@ Model implementations live in separate folders:
 - [RepViT-M0.9](repvit_m0_9/README.md): Nicole's model workflow.
 - [MobileNetV3-Small](mobilenet_v3_small/README.md): Amelia's baseline.
 - [DINOv2](dino/README.md): Akhil's frozen-backbone experiments and diagnostics.
-- [ResNet + RepViT ensemble](ensemble/README.md): five validation-selected fusion strategies.
+- [Pairwise ensembles](ensemble/README.md): logistic stacking for all six model pairs.
+
+The graph-ready ensemble metrics and poster figures are in
+[ensemble/results](ensemble/results/README.md) and
+[ensemble/poster_assets](ensemble/poster_assets/).
 
 Midpoint metrics are collected in [results/summary.csv](results/summary.csv).
 The committed ResNet result is the basic baseline only; large checkpoints remain
