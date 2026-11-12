@@ -276,34 +276,36 @@ DINOv2; that would be ours.
 5. Plan: tip locator on the frozen features (~100 clicks), heading-vs-branch rule, then a
    local-crop classifier where the team's augmentation / weighting / tuning experiments fit.
 
-## After the midpoint (Nov 9 - Dec 1)
+## After the midpoint (Nov 12 - Dec 1)
 
-One line of work, in order. Each step names what would make us stop.
+Revised Nov 12 after the advisor data release (see the dated note below). One line of work:
+locate the tip, turn it into geometry relative to the goal, decide from the geometry. Each
+step has a gate that says when to stop or fall back.
 
-1. **More clicks, new protocol: tip + 2 shaft points** (about 20 and 50 px back along the
-   wire) in f6 and f1, ~70 more cases to reach ~100. The shaft points give a directed heading
-   label. ~1 min per case.
-2. **Heading-vs-branch rule on clicked tips** (no training): signed PCA tangent over the
-   distal 10-30 px, compared with the direction of the on-path branch and of the competing
-   branch at the nearest bifurcation of the vessel graph. Stop if it is at chance on 100
-   clicked cases; then the labels, not the geometry, are the limit.
-3. **Tip locator** on cached DINOv2-S @ 448 tokens: small conv heatmap head on the 32x32 grid,
-   local soft-argmax, optional native-resolution refinement crop (FM-OSD); baseline =
-   template matching against clicked tips with no training. Report error at 30 / 60 / 100
-   labels on held-out episodes. Target: median < 20 px. Keep heading and tip velocity as
-   separate features (retracting reverses motion, not heading).
-4. **Decision model on [geometric scalars + native-resolution crop around the located tip +
-   goal-map crop + history]**. This is where Amelia's augmentation, Nicole's class weighting
-   and Akhil's hyperparameter sweep plug in, always 5-fold pooled, selection by val AUROC.
-5. **Error analysis** with clicked tips: tip not found / graph wrong / both right but label
-   disagrees. Share of each.
-6. **Pipeline latency**, model and end-to-end; the vessel graph is per-episode and does not
-   count per decision; say so.
-7. Stretch: fluoroscopy-specific pretraining (CathAction) for the locator.
+| # | Step | Gate | Target date |
+|---|---|---|---|
+| 1 | **Tip label set.** 68 long-horizon labels + 30 clicks, split by recording so no training frame shares a recording with the shorthorizon2 test episodes of the fold under evaluation. Tool fragment endpoints cached as proposals. | labels loaded, splits written | Nov 13 |
+| 2 | **Tip locator** (FM-OSD recipe): frozen DINOv2-S @ 448 patch grid -> small conv heatmap head -> soft-argmax -> native-resolution refinement crop. Baseline: template matching against clicked tips, no training. | median error < 20 px on held-out recordings; report at 30 / 60 / 100 labels | Nov 17 |
+| 3 | **Geometric rule on all 416.** Tip in f1 and f6 -> progress toward target and heading vs the on-path branch at the nearest junction (waldo-extra trees where available, branch tool elsewhere). Logistic regression on the scalars, 5 folds pooled. | pooled test AUROC > 0.60 | Nov 20 |
+| 4 | **Crop decision model.** Native-res crop around the located tip + goal-map crop + geometric scalars + history -> small head. Class weighting (Nicole), augmentation (Amelia), HP sweep (Akhil) plug in here, selection by val AUROC only. | beats step 3 on pooled test by more than 1 SE (~0.03 AUROC) | Nov 27 |
+| 5 | **Error analysis** on clicked cases: tip not found / graph wrong / both right but label disagrees. The last bucket is the anticipatory-retract ceiling. | share of each bucket reported | Nov 29 |
+| 6 | **Latency**, model and end-to-end, same protocol as the midpoint. Vessel graph is per episode and does not count per decision. | numbers in results/ | Dec 1 |
+
+Fallbacks: if step 2 misses the gate, train a U-Net wire segmenter (Ambrosini-style) on the
+same labels, optionally pretrained on CathAction, and take the distal skeleton endpoint. If
+step 3 misses the gate with a working locator, the geometry is not the signal and the
+remaining budget goes to error analysis and the write-up. A small open-weight VLM is
+considered only as a decision head fed the tip coordinate and progress as text, after step 3
+clears, and only on fold 0 first.
+
+Asks for Jamal this week: whether Astra's 82% was measured on these 416 decisions; whether
+the 68 long-horizon tip labels may be used to train a locator applied to shorthorizon2.
 
 Closed, with the evidence: fine-tuning DINO (Nov 7, test 0.50); higher resolution / tiles
 (Nov 7); DeiT-Tiny (weaker backbone, same approach); V-JEPA / video (motion at chance);
-small VLM (seconds of latency, 56% best open-weight on the clinical benchmark).
+VLM from raw frames (seconds of latency, 56% best open-weight on the clinical benchmark;
+our own 4 backbones show the failure is lost geometry, not encoder capacity); more clicking
+as a step of its own (label budget met by the advisor data).
 
 ### Nov 12: advisor data and the guidewire-tip tool
 
