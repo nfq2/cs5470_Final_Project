@@ -305,6 +305,43 @@ Closed, with the evidence: fine-tuning DINO (Nov 7, test 0.50); higher resolutio
 (Nov 7); DeiT-Tiny (weaker backbone, same approach); V-JEPA / video (motion at chance);
 small VLM (seconds of latency, 56% best open-weight on the clinical benchmark).
 
+### Nov 12: advisor data and the guidewire-tip tool
+
+Jamal released three private folders under `/global/cfs/cdirs/m4999/studentdata/` (never
+download or share): `CS5470-long-horizon/` (100 native frames, 68 with tip + branch-point
+pixel labels; classical `guidewire-tip` and `branch-map` tools with benchmark results;
+VLM baseline prompts and answers), `shorthorizon2/` (our 416), `waldo-extra/` (60 reviewed
+vessel trees with centerline polylines, roots, anatomy groups). Overlap by recording with
+our 120 episodes: 16 of 39 long-horizon recordings, 13 of 60 waldo-extra recordings, so
+any locator trained on those labels must be split by recording against our folds.
+
+Tip tool (ridge-fragment detector, CPU, 0.8 s per frame) scored against the 30 clicked
+cases, f1 and f6, 60 frames:
+
+| | frames |
+|---|---:|
+| tip proposed | 40 |
+| within 20 px of click | 24 |
+| wrong end of the right fragment | 11 |
+| abstained (ambiguous 11, not found 9) | 20 |
+| a detected fragment has an endpoint within 20 px of the click | 45 (f6 26/30, f1 19/30) |
+
+So the wire fragment is found in three quarters of frames and the loss is end selection
+and abstention, as the tool's own README says. Two cheap fixes using the frame pair:
+taking the endpoint that stays put across f1 and f6 as proximal gives f6 right in 19/30
+(tool alone 16/30); snapping f1 to the endpoint nearest the f6 tip gives f1 right in
+14/30. Both frames right in 14/30, not enough to run the geometric rule on all 416 from
+the tool alone. Median clicked tip motion f1 to f6 is 110 px, so the motion signal is large
+when the tip is found.
+
+Consequences for the plan: step 1 (clicks) shrinks, since the 68 labelled tips plus 30
+clicks reach the ~100 budget; the tool is an offline candidate generator for step 3 (its
+fragments are good proposals, its end choice is not), not a runtime component at 0.8 s;
+step 2 can use `waldo-extra` trees and the branch tool's junctions as the vessel graph
+instead of the hand-built map; the long-horizon `baselines.csv` gives per-frame Astra and
+GPT-5.6 answers for a localisation task on these frames, which is the closest we can get
+to checking what the hosted models actually see. Scripts: `$PSCRATCH/finalproject/tiptool/`.
+
 ## Open questions
 
 - Project brief (Nov 8): data is an expert driving a CorPath GRX robot on a Mentice patient
